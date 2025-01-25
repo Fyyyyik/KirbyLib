@@ -246,7 +246,7 @@ namespace KirbyLib.Mapping
 
                         CollisionTile tile = new CollisionTile();
                         tile.Shape = (LandGridShapeKind)reader.ReadByte();
-                        tile.Material = reader.ReadByte();
+                        tile.PropertyFlags = (LandGridProperty)reader.ReadByte();
 
                         grid.Collision[x, y] = tile;
                     }
@@ -393,7 +393,7 @@ namespace KirbyLib.Mapping
                                 writer.Write((byte)x);
                                 writer.Write((byte)y);
                                 writer.Write((byte)tile.Shape);
-                                writer.Write(tile.Material);
+                                writer.Write((byte)tile.PropertyFlags);
                             }
                         }
                     }
