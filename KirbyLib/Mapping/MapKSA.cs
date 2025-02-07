@@ -133,17 +133,25 @@ namespace KirbyLib.Mapping
         /// cubemaps and its Cinemo file with lighting information.
         /// </summary>
         public string LightSet = "Grass_01";
-        public Vector3 Unknown3;
-        public Vector3 Unknown4;
-        public Vector3 Unknown5;
-        public float Unknown6;
-        public float Unknown7;
-        public float Unknown8;
-        public float Unknown9;
-        public float Unknown10;
-        public float Unknown11;
-        public float Unknown12;
-        public float Unknown13;
+        public int Unknown3;
+        public int Unknown4;
+        public int Unknown5;
+        /// <summary>
+        /// Defines the starting position of the background camera.
+        /// </summary>
+        public Vector3 BGCameraPos;
+        /// <summary>
+        /// A vector multiplied by the main game camera's position to set where the.
+        /// </summary>
+        public Vector3 BGCameraMoveRate;
+        public int Unknown6;
+        public int Unknown7;
+        /// <summary>
+        /// Index of the BGM to use for the map.<br/>
+        /// The BGM list is stored in an external Yaml file.
+        /// </summary>
+        public uint BGMIndex;
+        public int Unknown9;
 
         #endregion
 
@@ -279,17 +287,15 @@ namespace KirbyLib.Mapping
             Unknown1 = reader.ReadUInt32();
             Unknown2 = reader.ReadUInt32();
             LightSet = reader.ReadStringOffset();
-            Unknown3 = reader.ReadVector3();
-            Unknown4 = reader.ReadVector3();
-            Unknown5 = reader.ReadVector3();
-            Unknown6 = reader.ReadSingle();
-            Unknown7 = reader.ReadSingle();
-            Unknown8 = reader.ReadSingle();
-            Unknown9 = reader.ReadSingle();
-            Unknown10 = reader.ReadSingle();
-            Unknown11 = reader.ReadSingle();
-            Unknown12 = reader.ReadSingle();
-            Unknown13 = reader.ReadSingle();
+            Unknown3 = reader.ReadInt32();
+            Unknown4 = reader.ReadInt32();
+            Unknown5 = reader.ReadInt32();
+            BGCameraPos = reader.ReadVector3();
+            BGCameraMoveRate = reader.ReadVector3();
+            Unknown6 = reader.ReadInt32();
+            Unknown7 = reader.ReadInt32();
+            BGMIndex = reader.ReadUInt32();
+            Unknown9 = reader.ReadInt32();
 
             reader.BaseStream.Position = gimmickSection;
             Gimmicks = ReadYamlSection(reader);
@@ -437,14 +443,12 @@ namespace KirbyLib.Mapping
             writer.Write(Unknown3);
             writer.Write(Unknown4);
             writer.Write(Unknown5);
+            writer.Write(BGCameraPos);
+            writer.Write(BGCameraMoveRate);
             writer.Write(Unknown6);
             writer.Write(Unknown7);
-            writer.Write(Unknown8);
+            writer.Write(BGMIndex);
             writer.Write(Unknown9);
-            writer.Write(Unknown10);
-            writer.Write(Unknown11);
-            writer.Write(Unknown12);
-            writer.Write(Unknown13);
 
             writer.WritePositionAt(headerStart + 0x1C);
             WriteYamlSection(writer, Gimmicks);

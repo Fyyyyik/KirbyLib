@@ -352,10 +352,19 @@ namespace KirbyLib_Tests
                 {
                     MapKSA map = new MapKSA(reader);
 
-                    for (int a = 0; a < map.CarryItems.Count; a++)
-                    {
-                        Console.WriteLine(map.CarryItems[a]);
-                    }
+                    Console.WriteLine("- General:");
+                    Console.WriteLine($"  - Unknown1: {map.Unknown1}");
+                    Console.WriteLine($"  - Unknown2: {map.Unknown2}");
+                    Console.WriteLine($"  - LightSet: {map.LightSet}");
+                    Console.WriteLine($"  - Unknown3: {map.Unknown3}");
+                    Console.WriteLine($"  - Unknown4: {map.Unknown4}");
+                    Console.WriteLine($"  - Unknown5: {map.Unknown5}");
+                    Console.WriteLine($"  - BGCameraPos: {map.BGCameraPos}");
+                    Console.WriteLine($"  - BGCameraMoveRate: {map.BGCameraMoveRate}");
+                    Console.WriteLine($"  - Unknown6: {map.Unknown6}");
+                    Console.WriteLine($"  - Unknown7: {map.Unknown7}");
+                    Console.WriteLine($"  - BGMIndex: {map.BGMIndex}");
+                    Console.WriteLine($"  - Unknown9: {map.Unknown9}");
                 }
             }
         }
