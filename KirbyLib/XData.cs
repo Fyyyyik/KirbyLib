@@ -34,7 +34,7 @@ namespace KirbyLib
         {
             string magic = Encoding.UTF8.GetString(reader.ReadBytes(4));
             if (magic != XDATA_MAGIC)
-                throw new InvalidDataException("XData magic \"XBIN\" not found!");
+                throw new InvalidDataException($"XData magic \"{XDATA_MAGIC}\" not found!");
 
             // Byte order mark; If 0x1234 is read, then the endianness of the reader must be flipped
             // In the actual data, this value is 0x3412 in little endian and 0x1234 in big endian
@@ -55,6 +55,27 @@ namespace KirbyLib
             // RLOC address, not needed for storing the data
             if (Version[0] > 2)
                 reader.ReadUInt32();
+        }
+
+        /// <summary>
+        /// Extracts an embedded XData file using its header.
+        /// </summary>
+        public static byte[] ExtractFile(EndianBinaryReader reader)
+        {
+            long pos = reader.BaseStream.Position;
+
+            string magic = Encoding.UTF8.GetString(reader.ReadBytes(4));
+            if (magic != XDATA_MAGIC)
+                throw new InvalidDataException($"XData magic \"{XDATA_MAGIC}\" not found!");
+
+            reader.ReadUInt16();
+
+            reader.ReadBytes(2);
+
+            int size = reader.ReadInt32();
+
+            reader.BaseStream.Position = pos;
+            return reader.ReadBytes(size);
         }
 
         /// <summary>

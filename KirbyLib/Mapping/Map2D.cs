@@ -188,12 +188,7 @@ namespace KirbyLib.Mapping
 
         protected Yaml ReadYaml(EndianBinaryReader reader)
         {
-            long pos = reader.BaseStream.Position;
-            reader.BaseStream.Position += 0xC;
-            int size = reader.ReadInt32();
-
-            reader.BaseStream.Position = pos;
-            byte[] rawYaml = reader.ReadBytes(size);
+            byte[] rawYaml = XData.ExtractFile(reader);
 
             Yaml yaml;
             using (MemoryStream stream = new MemoryStream(rawYaml))

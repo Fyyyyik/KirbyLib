@@ -88,9 +88,9 @@ namespace KirbyLib.Mapping
         public MoveGrid[] CollisionMoveGroups { get; private set; } = new MoveGrid[16];
 
         /// <summary>
-        /// The background set to load for the map.<br/>
-        /// This string is used to load a BFRES file containing a skeleton and<br/>
-        /// Cinemo file that specify how and where to place background objects.
+        /// The background set to load for the map.<br/><br/>
+        /// This string is used to load a BFRES file containing<br/>
+        /// a skeleton and Cinemo file that specify how and where to place background objects.
         /// </summary>
         public string Background = "Grass_Bg01";
         /// <summary>
@@ -128,9 +128,9 @@ namespace KirbyLib.Mapping
         public uint Unknown1;
         public uint Unknown2;
         /// <summary>
-        /// The light set to load for the map.<br/>
-        /// This string is used to load a BFRES file that contains cubemaps and<br/>
-        /// its Cinemo file with lighting information.
+        /// The light set to load for the map.<br/><br/>
+        /// This string is used to load a BFRES file that contains<br/>
+        /// cubemaps and its Cinemo file with lighting information.
         /// </summary>
         public string LightSet = "Grass_01";
         public Vector3 Unknown3;
