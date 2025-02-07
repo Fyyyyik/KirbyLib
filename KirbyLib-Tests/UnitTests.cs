@@ -1,6 +1,7 @@
 using KirbyLib;
 using KirbyLib.IO;
 using KirbyLib.Mapping;
+using KirbyLib.Mint;
 using System.IO;
 
 namespace KirbyLib_Tests
@@ -8,6 +9,75 @@ namespace KirbyLib_Tests
     [TestClass]
     public class UnitTests
     {
+        [TestMethod]
+        public void MintRtDLTest()
+        {
+            const string IN_PATH = @"D:\Game Dumps\Kirby's Return to Dreamland\DATA\files\mint\Archive.bin";
+
+            ArchiveRtDL mint;
+            using (FileStream stream = new FileStream(IN_PATH, FileMode.Open, FileAccess.Read))
+            using (EndianBinaryReader reader = new EndianBinaryReader(stream))
+                mint = new ArchiveRtDL(reader);
+
+            Console.WriteLine($"Version: {mint.GetVersionString()}");
+            /*Console.WriteLine($"Namespaces: {mint.Namespaces.Count}");
+            for (int i = 0; i < mint.Namespaces.Count; i++)
+            {
+                Console.WriteLine($"- {i}: {mint.Namespaces[i].Name} -> {mint.Namespaces[i].Unknown}");
+            }*/
+            if (mint.ModuleExists("User.Tsuruoka.MintTest"))
+            {
+                Console.WriteLine("User.Tsuruoka.MintTest:");
+                ObjectType obj = mint.GetModule("User.Tsuruoka.MintTest").ObjectTypes[0];
+                for (int i = 0; i < obj.Variables.Count; i++)
+                {
+                    Variable var = obj.Variables[i];
+                    Console.WriteLine($"  {var.Type} {var.Name}");
+                }
+                for (int f = 0; f < obj.Functions.Count; f++)
+                {
+                    Function func = obj.Functions[f];
+                    Console.WriteLine("  " + func.Name);
+                    for (int i = 0; i < func.Data.Length; i += 4)
+                    {
+                        Console.WriteLine($"    {func.Data[i + 0]:X2} {func.Data[i + 1]:X2} {func.Data[i + 2]:X2} {func.Data[i + 3]:X2}");
+                    }
+                }
+            }
+        }
+
+        [TestMethod]
+        public void MintKSATest()
+        {
+            const string IN_PATH = @"D:\Game Dumps\Kirby Star Allies\romfs\mint\Step.bin";
+
+            Archive mint;
+            using (FileStream stream = new FileStream(IN_PATH, FileMode.Open, FileAccess.Read))
+            using (EndianBinaryReader reader = new EndianBinaryReader(stream))
+                mint = new Archive(reader);
+
+            Console.WriteLine($"Version: {mint.GetVersionString()}");
+            Console.WriteLine("Scn.Step.Hero.Common.StateSliding.procAnim():");
+            if (mint.ModuleExists("Scn.Step.Hero.Common.StateSliding"))
+            {
+                Module mod = mint.GetModule("Scn.Step.Hero.Common.StateSliding");
+                Function func = mod.ObjectTypes[0].GetFunction("void procAnim()");
+                for (int i = 0; i < func.Data.Length; i += 4)
+                {
+                    Console.WriteLine($"  {func.Data[i + 0]:X2} {func.Data[i + 1]:X2} {func.Data[i + 2]:X2} {func.Data[i + 3]:X2}");
+                }
+            }
+            Console.WriteLine($"Namespaces: {mint.Namespaces.Count}");
+            for (int i = 0; i < mint.Namespaces.Count; i++)
+            {
+                Console.WriteLine($"- {i}: {mint.Namespaces[i].Name}");
+                Console.WriteLine($"  - Scripts: {mint.Namespaces[i].Modules}");
+                Console.WriteLine($"  - TotalScripts: {mint.Namespaces[i].TotalModules}");
+                Console.WriteLine($"  - Children: {mint.Namespaces[i].ChildNamespaces}");
+                Console.WriteLine($"  - Unknown: {mint.Namespaces[i].Unknown}");
+            }
+        }
+
         [TestMethod]
         public void YamlIOTest()
         {
@@ -282,9 +352,9 @@ namespace KirbyLib_Tests
                 {
                     MapKSA map = new MapKSA(reader);
 
-                    for (int a = 0; a < map.HelperGoItems.Count; a++)
+                    for (int a = 0; a < map.CarryItems.Count; a++)
                     {
-                        Console.WriteLine(map.HelperGoItems[a]);
+                        Console.WriteLine(map.CarryItems[a]);
                     }
                 }
             }

@@ -21,6 +21,18 @@ namespace KirbyLib.IO
             return str;
         }
 
+        public static int ReadIntOffset(this BinaryReader reader, int offset = 0)
+        {
+            uint addr = (uint)(reader.ReadUInt32() + offset);
+            long pos = reader.BaseStream.Position;
+
+            reader.BaseStream.Position = addr;
+            int value = reader.ReadInt32();
+
+            reader.BaseStream.Position = pos;
+            return value;
+        }
+
         public static string ReadStringHAL(this BinaryReader reader)
         {
             return Encoding.UTF8.GetString(reader.ReadBytes(reader.ReadInt32()));
