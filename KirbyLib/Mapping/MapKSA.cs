@@ -133,9 +133,18 @@ namespace KirbyLib.Mapping
         /// cubemaps and its Cinemo file with lighting information.
         /// </summary>
         public string LightSet = "Grass_01";
-        public int Unknown3;
-        public int Unknown4;
-        public int Unknown5;
+        /// <summary>
+        /// If set, RespawnStartPortal and RespawnStepShift are used to determine where to place Kirby after dying.
+        /// </summary>
+        public bool CustomRespawn = false;
+        /// <summary>
+        /// How many rooms to move Kirby after dying.
+        /// </summary>
+        public int RespawnStepShift = 0;
+        /// <summary>
+        /// The StartPortal ID to place Kirby at after dying.
+        /// </summary>
+        public int RespawnStartPortal = 0;
         /// <summary>
         /// Defines the starting position of the background camera.
         /// </summary>
@@ -287,9 +296,9 @@ namespace KirbyLib.Mapping
             Unknown1 = reader.ReadUInt32();
             Unknown2 = reader.ReadUInt32();
             LightSet = reader.ReadStringOffset();
-            Unknown3 = reader.ReadInt32();
-            Unknown4 = reader.ReadInt32();
-            Unknown5 = reader.ReadInt32();
+            CustomRespawn = reader.ReadUInt32() != 0;
+            RespawnStepShift = reader.ReadInt32();
+            RespawnStartPortal = reader.ReadInt32();
             BGCameraPos = reader.ReadVector3();
             BGCameraMoveRate = reader.ReadVector3();
             Unknown6 = reader.ReadInt32();
@@ -440,9 +449,9 @@ namespace KirbyLib.Mapping
             strings.Add(writer.BaseStream.Position, LightSet);
             writer.Write(-1);
 
-            writer.Write(Unknown3);
-            writer.Write(Unknown4);
-            writer.Write(Unknown5);
+            writer.Write(CustomRespawn ? 1 : 0);
+            writer.Write(RespawnStepShift);
+            writer.Write(RespawnStartPortal);
             writer.Write(BGCameraPos);
             writer.Write(BGCameraMoveRate);
             writer.Write(Unknown6);

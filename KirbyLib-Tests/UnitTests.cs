@@ -356,9 +356,9 @@ namespace KirbyLib_Tests
                     Console.WriteLine($"  - Unknown1: {map.Unknown1}");
                     Console.WriteLine($"  - Unknown2: {map.Unknown2}");
                     Console.WriteLine($"  - LightSet: {map.LightSet}");
-                    Console.WriteLine($"  - Unknown3: {map.Unknown3}");
-                    Console.WriteLine($"  - Unknown4: {map.Unknown4}");
-                    Console.WriteLine($"  - Unknown5: {map.Unknown5}");
+                    Console.WriteLine($"  - CustomRespawn: {map.CustomRespawn}");
+                    Console.WriteLine($"  - RespawnStepShift: {map.RespawnStepShift}");
+                    Console.WriteLine($"  - RespawnStartPortal: {map.RespawnStartPortal}");
                     Console.WriteLine($"  - BGCameraPos: {map.BGCameraPos}");
                     Console.WriteLine($"  - BGCameraMoveRate: {map.BGCameraMoveRate}");
                     Console.WriteLine($"  - Unknown6: {map.Unknown6}");
