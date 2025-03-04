@@ -42,8 +42,8 @@ namespace KirbyLib
         /// <summary>
         /// FDG Version.<br/>
         /// <list type="bullet">
-        ///     <item><b>2</b>: 32-bit string offsets.<br/>Used until Kirby Star Allies.</item>
-        ///     <item><b>3</b>: 64-bit string offsets. Strings are also hashed with FNV-1a.<br/>Used starting with Kirby and the Forgotten Land and later.</item>
+        ///     <item><b>2</b>: 32-bit string offsets.<br/>Used in Kirby Fighters 2 and earlier.</item>
+        ///     <item><b>3</b>: 64-bit string offsets. Strings are also hashed with FNV-1a.<br/>Used in Kirby and the Forgotten Land and later.</item>
         /// </list>
         /// </summary>
         public int Version = 2;
