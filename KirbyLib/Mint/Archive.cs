@@ -48,9 +48,16 @@ namespace KirbyLib.Mint
             reader.BaseStream.Position = header + headerLength;
             uint indexTable = reader.ReadUInt32();
 
-            List<Namespace> readNamespaces = new List<Namespace>();
+            long namespaceListAddr = reader.BaseStream.Position;
+            reader.BaseStream.Position = indexTable;
+            Namespaces = new List<Namespace>();
             for (int i = 0; i < namespaceCount; i++)
             {
+                reader.BaseStream.Position = indexTable + (i * 4);
+                int index = reader.ReadInt32() - 1;
+
+                reader.BaseStream.Position = namespaceListAddr + (index * 0x14);
+
                 Namespace n = new Namespace();
                 n.Name = reader.ReadStringOffset();
                 n.Modules = reader.ReadInt32();
@@ -59,14 +66,7 @@ namespace KirbyLib.Mint
                 // HAL Labs you are so weird why do you do this?
                 n.Unknown = reader.ReadIntOffset(-4) - 1;
 
-                readNamespaces.Add(n);
-            }
-
-            Namespaces = new List<Namespace>();
-            reader.BaseStream.Position = indexTable;
-            for (int i = 0; i < namespaceCount; i++)
-            {
-                Namespaces.Add(readNamespaces[reader.ReadInt32() - 1]);
+                Namespaces.Add(n);
             }
 
             Modules = new List<Module>();
@@ -84,6 +84,112 @@ namespace KirbyLib.Mint
 
                 Modules.Add(module);
             }
+
+            reader.BaseStream.Position = endOfDataAddr;
+            //Console.WriteLine("Unknown 1: " + reader.ReadUInt32());
+            //Console.WriteLine("Unknown 2: " + reader.ReadUInt32());
+        }
+
+        public void Write(EndianBinaryWriter writer)
+        {
+            StringHelperContainer strings = new StringHelperContainer();
+
+            /*
+            // Not doing this until I know everything about that stupid unknown value because everything other than that is very easy to calculate
+            
+            // Auto-generate namespace list based on module names
+            List<string> namespaceList = new List<string>();
+            for (int i = 0; i < Modules.Count; i++)
+            {
+                string[] modNameSplit = Modules[i].Name.Split('.');
+                for (int s = 0; s < modNameSplit.Length - 1; s++)
+                {
+                    string nSpace = string.Join(".", modNameSplit.Take(s + 1));
+                    if (!namespaceList.Contains(nSpace))
+                        namespaceList.Add(nSpace);
+                }
+            }
+            namespaceList = namespaceList.OrderBy(x => x.ToLower()).OrderBy(x => x.Count(x => x == '.')).ToList();
+            */
+
+            XData.WriteHeader(writer);
+
+            writer.Write(Version);
+
+            long header = writer.BaseStream.Position;
+            writer.Write(Namespaces.Count + 1);
+            writer.Write(0x24);
+            writer.Write(Modules.Count);
+            writer.Write(-1);
+            writer.Write(-1);
+            writer.Write(Version[0] >= 7 ? 1 : 0);
+            writer.Write(0);
+            writer.Write(Namespaces.Count(x => !x.Name.Contains('.')));
+
+            long indexTableStart = writer.BaseStream.Position + (Namespaces.Count * 0x14) + 4;
+            writer.Write((uint)indexTableStart);
+            long namespaceListStart = writer.BaseStream.Position;
+
+            var writeOrder = Namespaces.Select(x => x.Name).ToList();
+            writeOrder.Sort(StringComparer.Ordinal);
+
+            int moduleCount = Modules.Count(x => !x.Name.Contains('.'));
+            for (int i = 0; i < writeOrder.Count; i++)
+            {
+                var nSpace = Namespaces.First(x => x.Name == writeOrder[i]);
+                strings.Add(writer.BaseStream.Position, nSpace.Name);
+                writer.Write(-1);
+                int modules = Modules.Count(x => x.Name != nSpace.Name && x.Name.StartsWith(nSpace.Name + ".") && !x.Name.Remove(0, nSpace.Name.Length + 1).Contains('.'));
+                writer.Write(modules);
+                writer.Write(moduleCount);
+                moduleCount += modules;
+                writer.Write(Namespaces.Count(x => x.Name != nSpace.Name && x.Name.StartsWith(nSpace.Name + ".") && !x.Name.Remove(0, nSpace.Name.Length + 1).Contains('.')));
+
+                writer.Write((int)indexTableStart + 4);
+            }
+
+            for (int i = 0; i < Namespaces.Count; i++)
+            {
+                int index = writeOrder.IndexOf(Namespaces[i].Name);
+                writer.Write(index + 1);
+                /*
+                for (int n = 0; n < writeOrder.Count; n++)
+                {
+                    if (Namespaces.First(x => x.Name == writeOrder[n]).Unknown == index)
+                        writer.WritePositionAt(namespaceListStart + (n * 0x14) + 0x10);
+                }
+                */
+            }
+
+            writer.WritePositionAt(header + 0xC);
+
+            long moduleAddr = writer.BaseStream.Position;
+            for (int i = 0; i < Modules.Count; i++)
+            {
+                strings.Add(writer.BaseStream.Position, Modules[i].Name);
+                writer.Write(-1);
+                writer.Write(-1);
+            }
+
+            for (int i = 0; i < Modules.Count; i++)
+            {
+                writer.WritePositionAt(moduleAddr + (i * 8) + 4);
+                using (MemoryStream stream = new MemoryStream())
+                {
+                    using (EndianBinaryWriter moduleWriter = new EndianBinaryWriter(stream))
+                        Modules[i].Write(moduleWriter);
+
+                    writer.Write(stream.ToArray());
+                }
+            }
+
+            writer.WritePositionAt(header + 0x10);
+            writer.Write(0);
+            writer.Write(0);
+            strings.WriteAll(writer);
+
+            XData.WriteFilesize(writer);
+            XData.WriteFooter(writer);
         }
 
         public bool NamespaceExists(string name)
@@ -132,7 +238,7 @@ namespace KirbyLib.Mint
 
         public string GetVersionString() => string.Join('.', Version);
 
-        protected Module ReadModule(EndianBinaryReader reader)
+        private Module ReadModule(EndianBinaryReader reader)
         {
             byte[] rawModule = XData.ExtractFile(reader);
 
@@ -148,5 +254,9 @@ namespace KirbyLib.Mint
 
             return module;
         }
+
+        public Module this[int index] => Modules[index];
+
+        public Module this[string name] => GetModule(name);
     }
 }

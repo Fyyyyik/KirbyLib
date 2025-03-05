@@ -9,23 +9,18 @@ namespace KirbyLib.Crypto
 {
     public static class Crc32C
     {
-        private static byte[] Calculate(string str)
+        private static uint Calculate(string str, bool bigEndian = false)
         {
-            byte[] hash;
-            Crc32CAlgorithm crc = new Crc32CAlgorithm();
-            hash = crc.ComputeHash(Encoding.UTF8.GetBytes(str));
-            return hash;
+            Crc32CAlgorithm crc = new Crc32CAlgorithm(bigEndian);
+            return BitConverter.ToUInt32(crc.ComputeHash(Encoding.UTF8.GetBytes(str)));
         }
 
         /// <summary>
         /// Calculates an inverted Crc32C hash
         /// </summary>
-        public static byte[] CalculateInv(string str)
+        public static uint CalculateInv(string str, bool bigEndian = false)
         {
-            byte[] hash = Calculate(str);
-            for (int i = 0; i < hash.Length; i++)
-                hash[i] = (byte)(255 - hash[i]);
-            return hash;
+            return Calculate(str, bigEndian) ^ 0xFFFFFFFF;
         }
     }
 }

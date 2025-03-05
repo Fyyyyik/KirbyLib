@@ -1,4 +1,5 @@
-﻿using KirbyLib.IO;
+﻿using KirbyLib.Crypto;
+using KirbyLib.IO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +18,7 @@ namespace KirbyLib.Mint
 
         public List<byte> SData = new List<byte>();
         public List<string> XRef = new List<string>();
-        public List<ObjectType> ObjectTypes = new List<ObjectType>();
+        public List<MintObject> Objects = new List<MintObject>();
 
         public ModuleRtDL() { }
 
@@ -39,7 +40,7 @@ namespace KirbyLib.Mint
             Name = reader.ReadStringOffset();
             uint sdataAddr = reader.ReadUInt32();
             uint xrefAddr = reader.ReadUInt32();
-            uint objTypesAddr = reader.ReadUInt32();
+            uint objectsAddr = reader.ReadUInt32();
 
             reader.BaseStream.Position = sdataAddr;
             SData = reader.ReadBytes(reader.ReadInt32()).ToList();
@@ -50,19 +51,19 @@ namespace KirbyLib.Mint
             for (int i = 0; i < xrefCount; i++)
                 XRef.Add(reader.ReadStringOffset());
 
-            reader.BaseStream.Position = objTypesAddr;
-            ObjectTypes = new List<ObjectType>();
-            uint objTypeCount = reader.ReadUInt32();
-            for (uint i = 0; i < objTypeCount; i++)
+            reader.BaseStream.Position = objectsAddr;
+            Objects = new List<MintObject>();
+            uint objCount = reader.ReadUInt32();
+            for (uint i = 0; i < objCount; i++)
             {
-                reader.BaseStream.Position = objTypesAddr + 4 + (i * 4);
+                reader.BaseStream.Position = objectsAddr + 4 + (i * 4);
                 uint objAddr = reader.ReadUInt32();
                 // Used for reading the final function with relative ease
-                uint objEndAddr = i < objTypeCount - 1 ? reader.ReadUInt32() : nameAddr;
+                uint objEndAddr = i < objCount - 1 ? reader.ReadUInt32() : nameAddr;
 
                 reader.BaseStream.Position = objAddr;
 
-                ObjectType obj = new ObjectType();
+                MintObject obj = new MintObject();
                 obj.Name = reader.ReadStringOffset();
                 uint varAddr = reader.ReadUInt32();
                 uint funcAddr = reader.ReadUInt32();
@@ -74,7 +75,7 @@ namespace KirbyLib.Mint
                     reader.BaseStream.Position = varAddr + 4 + (v * 4);
                     reader.BaseStream.Position = reader.ReadUInt32();
 
-                    Variable variable = new Variable();
+                    MintVariable variable = new MintVariable();
                     variable.Name = reader.ReadStringOffset();
                     variable.Type = reader.ReadStringOffset();
 
@@ -91,7 +92,7 @@ namespace KirbyLib.Mint
                     uint endAddr = f < funcCount - 1 ? reader.ReadUInt32() : objEndAddr;
                     reader.BaseStream.Position = addr;
 
-                    Function func = new Function();
+                    MintFunction func = new MintFunction();
                     func.Name = reader.ReadStringOffset();
                     uint dataAddr = reader.ReadUInt32();
 
@@ -101,30 +102,129 @@ namespace KirbyLib.Mint
                     obj.Functions.Add(func);
                 }
 
-                ObjectTypes.Add(obj);
+                Objects.Add(obj);
             }
         }
 
-        public bool ObjectTypeExists(string name)
+        public void Write(EndianBinaryWriter writer)
         {
-            for (int i = 0; i < ObjectTypes.Count; i++)
+            StringHelperContainer strings = new StringHelperContainer();
+
+            XData.WriteHeader(writer);
+
+            writer.Write(new byte[] { 0, 2, 0, 0 });
+
+            strings.Add(writer.BaseStream.Position, Name);
+            writer.Write(-1);
+
+            long headerStart = writer.BaseStream.Position;
+            writer.Write(-1);
+            writer.Write(-1);
+            writer.Write(-1);
+
+            writer.WritePositionAt(headerStart);
+            writer.Write(SData.Count);
+            writer.Write(SData.ToArray());
+
+            writer.WritePositionAt(headerStart + 4);
+            writer.Write(XRef.Count);
+            for (int i = 0; i < XRef.Count; i++)
             {
-                if (ObjectTypes[i].Name == name)
+                strings.Add(writer.BaseStream.Position, XRef[i]);
+                writer.Write(-1);
+            }
+
+            long objListStart = writer.BaseStream.Position;
+            writer.WritePositionAt(headerStart + 8);
+            writer.Write(Objects.Count);
+            for (int i = 0; i < Objects.Count; i++)
+                writer.Write(-1);
+
+            for (int i = 0; i < Objects.Count; i++)
+            {
+                MintObject obj = Objects[i];
+
+                long objPos = writer.BaseStream.Position;
+                writer.WritePositionAt(objListStart + 4 + (i * 4));
+
+                strings.Add(writer.BaseStream.Position, obj.Name);
+                writer.Write(-1);
+                writer.Write(-1);
+                writer.Write(-1);
+
+                long varListStart = writer.BaseStream.Position;
+                writer.WritePositionAt(objPos + 4);
+                writer.Write(obj.Variables.Count);
+                for (int j = 0; j < obj.Variables.Count; j++)
+                    writer.Write(-1);
+
+                for (int j = 0; j < obj.Variables.Count; j++)
+                {
+                    MintVariable var = obj.Variables[j];
+                    var.Name = var.Name.Trim();
+                    var.Type = var.Type.Trim();
+
+                    writer.WritePositionAt(varListStart + 4 + (j * 4));
+
+                    strings.Add(writer.BaseStream.Position, var.Name);
+                    writer.Write(-1);
+                    strings.Add(writer.BaseStream.Position, var.Type);
+                    writer.Write(-1);
+                }
+
+                long funcListStart = writer.BaseStream.Position;
+                writer.WritePositionAt(objPos + 8);
+                writer.Write(obj.Functions.Count);
+                for (int j = 0; j < obj.Functions.Count; j++)
+                    writer.Write(-1);
+
+                for (int j = 0; j < obj.Functions.Count; j++)
+                {
+                    MintFunction func = obj.Functions[j];
+
+                    writer.WritePositionAt(funcListStart + 4 + (j * 4));
+
+                    strings.Add(writer.BaseStream.Position, func.Name);
+                    writer.Write(-1);
+                    long dataAddr = writer.BaseStream.Position;
+                    writer.Write(-1);
+
+                    writer.WritePositionAt(dataAddr);
+                    writer.Write(func.Data);
+                    writer.WritePadding();
+                }
+            }
+
+            strings.WriteAll(writer);
+
+            XData.WriteFilesize(writer);
+            XData.WriteFooter(writer);
+        }
+
+        public bool ObjectExists(string name)
+        {
+            for (int i = 0; i < Objects.Count; i++)
+            {
+                if (Objects[i].Name == name)
                     return true;
             }
 
             return false;
         }
 
-        public ObjectType GetObjectType(string name)
+        public MintObject GetObject(string name)
         {
-            for (int i = 0; i < ObjectTypes.Count; i++)
+            for (int i = 0; i < Objects.Count; i++)
             {
-                if (ObjectTypes[i].Name == name)
-                    return ObjectTypes[i];
+                if (Objects[i].Name == name)
+                    return Objects[i];
             }
 
             return null;
         }
+
+        public MintObject this[int index] => Objects[index];
+
+        public MintObject this[string name] => GetObject(name);
     }
 }

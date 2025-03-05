@@ -17,7 +17,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\KirbyLib\KirbyLib.csproj" />
+    <ProjectReference Include="..\KirbyLib\KirbyLib.csproj">
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
 
 </Project>

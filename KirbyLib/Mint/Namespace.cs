@@ -14,4 +14,33 @@ namespace KirbyLib.Mint
         public int TotalModules;
         public int ChildNamespaces;
     }
+
+    internal class NamespaceComparer : IComparer<Namespace>
+    {
+        readonly string CharSort = "!\"#$%&\\'()*+,.-/:;<=>?@[\\]^_`{|}~0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+        public int Compare(Namespace x, Namespace y)
+        {
+            string xName = x.Name;
+            string yName = y.Name;
+            if (xName == yName)
+                return 0;
+
+            for (int i = 0; i < xName.Length; i++)
+            {
+                if (i >= yName.Length)
+                    return -1;
+
+                if (xName[i] == yName[i])
+                    continue;
+
+                if (CharSort.IndexOf(xName[i]) < CharSort.IndexOf(yName[i]))
+                    return -1;
+                else
+                    return 1;
+            }
+
+            return 0;
+        }
+    }
 }

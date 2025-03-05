@@ -1,4 +1,5 @@
-﻿using KirbyLib.IO;
+﻿using KirbyLib.Crypto;
+using KirbyLib.IO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,8 +18,7 @@ namespace KirbyLib.Mint
 
         public List<byte> SData = new List<byte>();
         public List<uint> XRef = new List<uint>();
-        public List<ObjectType> ObjectTypes = new List<ObjectType>();
-        public List<uint> Implements = new List<uint>();
+        public List<MintObject> Objects = new List<MintObject>();
 
         public Module() { }
 
@@ -31,13 +31,23 @@ namespace KirbyLib.Mint
         {
             XData.Read(reader);
 
+            // Need this for later
+            uint nameAddr = reader.ReadUInt32();
+            reader.BaseStream.Position -= 4;
+
             Name = reader.ReadStringOffset();
             if (Format >= ModuleFormat.Basil)
-                reader.ReadUInt32(); // Hash for the Module, introduced in Basil
+            {
+                uint moduleHash = reader.ReadUInt32(); // Hash for the Module, introduced in Basil
+                /*
+                if (moduleHash != Crc32C.CalculateInv(Name, XData.Endianness == Endianness.Big))
+                    Console.WriteLine($"Warning: Module {Name} has incorrect hash of {moduleHash:X8}, expected {Crc32C.CalculateInv(Name, XData.Endianness == Endianness.Big):X8}");
+                */
+            }
 
             uint sdataAddr = reader.ReadUInt32();
             uint xrefAddr = reader.ReadUInt32();
-            uint objTypesAddr = reader.ReadUInt32();
+            uint objAddr = reader.ReadUInt32();
 
             reader.BaseStream.Position = sdataAddr;
             SData = reader.ReadBytes(reader.ReadInt32()).ToList();
@@ -48,132 +58,321 @@ namespace KirbyLib.Mint
             for (int i = 0; i < xrefCount; i++)
                 XRef.Add(reader.ReadUInt32());
 
-            reader.BaseStream.Position = objTypesAddr;
-            ObjectTypes = new List<ObjectType>();
-            uint objTypeCount = reader.ReadUInt32();
-            for (uint i = 0; i < objTypeCount; i++)
+            reader.BaseStream.Position = objAddr;
+            Objects = new List<MintObject>();
+            uint objCount = reader.ReadUInt32();
+            for (uint i = 0; i < objCount; i++)
             {
-                reader.BaseStream.Position = objTypesAddr + 4 + (i * 4);
-                reader.BaseStream.Position = reader.ReadUInt32();
+                reader.BaseStream.Position = objAddr + 4 + (i * 4);
+                uint thisObjAddr = reader.ReadUInt32();
+                // Used for reading the final function with relative ease
+                uint objEndAddr = i < objCount - 1 ? reader.ReadUInt32() : nameAddr;
 
-                ObjectType obj = new ObjectType();
+                reader.BaseStream.Position = thisObjAddr;
+
+                MintObject obj = new MintObject();
                 obj.Name = reader.ReadStringOffset();
-                reader.ReadUInt32(); // Inverted CRC32-C Object name hash, don't really need this because we can just calculate it whenever
+                uint objHash = reader.ReadUInt32(); // Inverted CRC32-C Object name hash, don't really need this because we can just calculate it whenever
+                /*
+                if (objHash != Crc32C.CalculateInv(obj.Name, XData.Endianness == Endianness.Big))
+                    Console.WriteLine($"Warning: Object {obj.Name} has incorrect hash of {objHash:X8}, expected {Crc32C.CalculateInv(obj.Name, XData.Endianness == Endianness.Big):X8}");
+                */
                 uint varAddr = reader.ReadUInt32();
                 uint funcAddr = reader.ReadUInt32();
                 uint enumAddr = reader.ReadUInt32();
 
-                uint implAddr = 0;
+                uint implAddr = reader.ReadUInt32();
                 uint extAddr = 0;
-                if (Format >= ModuleFormat.Mint)
-                    implAddr = reader.ReadUInt32();
                 if (Format >= ModuleFormat.Basil)
                     extAddr = reader.ReadUInt32();
                 obj.Flags = reader.ReadUInt32();
 
-                reader.BaseStream.Position = varAddr;
-                uint varCount = reader.ReadUInt32();
-                for (int v = 0; v < varCount; v++)
+                // In Basil, sections that don't exist (by having no entries) have offsets of 0
+                if (varAddr > 0)
                 {
-                    reader.BaseStream.Position = varAddr + 4 + (v * 4);
-                    reader.BaseStream.Position = reader.ReadUInt32();
+                    reader.BaseStream.Position = varAddr;
+                    uint varCount = reader.ReadUInt32();
+                    for (int v = 0; v < varCount; v++)
+                    {
+                        reader.BaseStream.Position = varAddr + 4 + (v * 4);
+                        reader.BaseStream.Position = reader.ReadUInt32();
 
-                    Variable variable = new Variable();
-                    variable.Name = reader.ReadStringOffset();
-                    reader.ReadUInt32(); // Inverted CRC32-C variable name hash, can be calculated whenever
-                    variable.Type = reader.ReadStringOffset();
-                    variable.Flags = reader.ReadUInt32();
+                        MintVariable variable = new MintVariable();
+                        variable.Name = reader.ReadStringOffset();
+                        uint hash = reader.ReadUInt32(); // Inverted CRC32-C variable name hash, can be calculated whenever
+                        /*
+                        if (hash != Crc32C.CalculateInv($"{obj.Name}.{variable.Name}", XData.Endianness == Endianness.Big))
+                            Console.WriteLine($"Warning: Variable {obj.Name}.{variable.Name} has incorrect hash of {hash:X8}, expected {Crc32C.CalculateInv($"{obj.Name}.{variable.Name}", XData.Endianness == Endianness.Big):X8}");
+                        */
+                        variable.Type = reader.ReadStringOffset();
+                        variable.Flags = reader.ReadUInt32();
 
-                    obj.Variables.Add(variable);
+                        obj.Variables.Add(variable);
+                    }
                 }
 
-                reader.BaseStream.Position = funcAddr;
-                uint funcCount = reader.ReadUInt32();
-                for (uint f = 0; f < funcCount; f++)
+                if (funcAddr > 0)
                 {
-                    reader.BaseStream.Position = funcAddr + 4 + (f * 4);
-                    uint addr = reader.ReadUInt32();
-                    // Get end address of function data block for very easy reading
-                    uint endAddr = f < funcCount - 1 ? reader.ReadUInt32() : enumAddr;
-                    reader.BaseStream.Position = addr;
-
-                    Function func = new Function();
-                    func.Name = reader.ReadStringOffset();
-                    reader.ReadUInt32(); // Inverted CRC32-C function name hash, can just be calculated whenever so again we don't really need it
-                    if (Format >= ModuleFormat.Basil)
+                    reader.BaseStream.Position = funcAddr;
+                    uint funcCount = reader.ReadUInt32();
+                    for (uint f = 0; f < funcCount; f++)
                     {
-                        func.Arguments = reader.ReadUInt32();
-                        func.Registers = reader.ReadUInt32();
-                    }
+                        reader.BaseStream.Position = funcAddr + 4 + (f * 4);
+                        uint addr = reader.ReadUInt32();
+                        // Get end address of function data block for very easy reading
+                        uint fallbackNextSection = enumAddr;
+                        if (fallbackNextSection == 0)
+                            fallbackNextSection = implAddr;
+                        if (fallbackNextSection == 0)
+                            fallbackNextSection = extAddr;
+                        if (fallbackNextSection == 0)
+                            fallbackNextSection = objEndAddr;
 
-                    uint dataAddr = reader.ReadUInt32();
-                    if (Format >= ModuleFormat.Mint)
+                        uint endAddr = f < funcCount - 1 ? reader.ReadUInt32() : fallbackNextSection;
+                        reader.BaseStream.Position = addr;
+
+                        MintFunction func = new MintFunction();
+                        func.Name = reader.ReadStringOffset();
+                        uint hash = reader.ReadUInt32(); // Inverted CRC32-C function name hash, can just be calculated whenever so again we don't really need it
+                        /*
+                        if (hash != Crc32C.CalculateInv($"{obj.Name}.{func.NameWithoutType()}", XData.Endianness == Endianness.Big))
+                            Console.WriteLine($"Warning: Function {obj.Name}.{func.NameWithoutType()} has incorrect hash of {hash:X8}, expected {Crc32C.CalculateInv($"{obj.Name}.{func.NameWithoutType()}", XData.Endianness == Endianness.Big):X8}");
+                        */
+
+                        if (Format >= ModuleFormat.Basil)
+                        {
+                            func.Arguments = reader.ReadUInt32();
+                            func.Registers = reader.ReadUInt32();
+                        }
+
+                        uint dataAddr = reader.ReadUInt32();
                         func.Flags = reader.ReadUInt32();
 
-                    reader.BaseStream.Position = dataAddr;
-                    func.Data = reader.ReadBytes((int)(endAddr - dataAddr));
+                        reader.BaseStream.Position = dataAddr;
+                        func.Data = reader.ReadBytes((int)(endAddr - dataAddr));
 
-                    obj.Functions.Add(func);
+                        obj.Functions.Add(func);
+                    }
                 }
 
-                reader.BaseStream.Position = enumAddr;
-                uint enumCount = reader.ReadUInt32();
-                for (uint e = 0; e < enumCount; e++)
+                if (enumAddr > 0)
                 {
-                    reader.BaseStream.Position = enumAddr + 4 + (e * 4);
-                    reader.BaseStream.Position = reader.ReadUInt32();
+                    reader.BaseStream.Position = enumAddr;
+                    uint enumCount = reader.ReadUInt32();
+                    for (uint e = 0; e < enumCount; e++)
+                    {
+                        reader.BaseStream.Position = enumAddr + 4 + (e * 4);
+                        reader.BaseStream.Position = reader.ReadUInt32();
 
-                    MintEnum mintEnum = new MintEnum();
-                    mintEnum.Name = reader.ReadStringOffset();
-                    mintEnum.Value = reader.ReadInt32();
+                        MintEnum mintEnum = new MintEnum();
+                        mintEnum.Name = reader.ReadStringOffset();
+                        mintEnum.Value = reader.ReadInt32();
 
-                    obj.Enums.Add(mintEnum);
+                        obj.Enums.Add(mintEnum);
+                    }
                 }
 
-                if (Format >= ModuleFormat.Mint)
+                if (implAddr > 0)
                 {
                     reader.BaseStream.Position = implAddr;
                     int implCount = reader.ReadInt32();
                     for (int m = 0; m < implCount; m++)
                     {
-                        Implements.Add(XRef[reader.ReadUInt16()]);
+                        obj.Implements.Add(XRef[reader.ReadUInt16()]);
                     }
                 }
 
-                if (Format >= ModuleFormat.Basil)
+                if (Format >= ModuleFormat.Basil && extAddr > 0)
                 {
                     reader.BaseStream.Position = extAddr;
                     int extCount = reader.ReadInt32();
                     for (int e = 0; e < extCount; e++)
                     {
-
+                        obj.Extends.Add(reader.ReadBytes(4));
                     }
                 }
 
-                ObjectTypes.Add(obj);
+                Objects.Add(obj);
             }
         }
 
-        public bool ObjectTypeExists(string name)
+        public void Write(EndianBinaryWriter writer)
         {
-            for (int i = 0; i < ObjectTypes.Count; i++)
+            StringHelperContainer strings = new StringHelperContainer();
+
+            XData.WriteHeader(writer);
+
+            strings.Add(writer.BaseStream.Position, Name);
+            writer.Write(-1);
+            if (Format >= ModuleFormat.Basil)
+                writer.Write(Crc32C.CalculateInv(Name, XData.Endianness == Endianness.Big));
+
+            long headerStart = writer.BaseStream.Position;
+            writer.Write(-1);
+            writer.Write(-1);
+            writer.Write(-1);
+
+            writer.WritePositionAt(headerStart);
+            writer.Write(SData.Count);
+            writer.Write(SData.ToArray());
+            writer.Write(0);
+            writer.WritePadding();
+
+            writer.WritePositionAt(headerStart + 4);
+            writer.Write(XRef.Count);
+            for (int i = 0; i < XRef.Count; i++)
+                writer.Write(XRef[i]);
+
+            long objListStart = writer.BaseStream.Position;
+            writer.WritePositionAt(headerStart + 8);
+            writer.Write(Objects.Count);
+            for (int i = 0; i < Objects.Count; i++)
+                writer.Write(-1);
+
+            for (int i = 0; i < Objects.Count; i++)
             {
-                if (ObjectTypes[i].Name == name)
+                MintObject obj = Objects[i];
+
+                long objPos = writer.BaseStream.Position;
+                writer.WritePositionAt(objListStart + 4 + (i * 4));
+
+                strings.Add(writer.BaseStream.Position, obj.Name);
+                writer.Write(-1);
+                writer.Write(Crc32C.CalculateInv(obj.Name, XData.Endianness == Endianness.Big));
+                writer.Write(0);
+                writer.Write(0);
+                writer.Write(0);
+                writer.Write(0);
+                if (Format >= ModuleFormat.Basil)
+                    writer.Write(0);
+                writer.Write(obj.Flags);
+
+                if (Format < ModuleFormat.Basil || obj.Variables.Count > 0)
+                {
+                    long varListStart = writer.BaseStream.Position;
+                    writer.WritePositionAt(objPos + 0x8);
+                    writer.Write(obj.Variables.Count);
+                    for (int j = 0; j < obj.Variables.Count; j++)
+                        writer.Write(-1);
+
+                    for (int j = 0; j < obj.Variables.Count; j++)
+                    {
+                        MintVariable var = obj.Variables[j];
+                        var.Name = var.Name.Trim();
+                        var.Type = var.Type.Trim();
+
+                        writer.WritePositionAt(varListStart + 4 + (j * 4));
+
+                        strings.Add(writer.BaseStream.Position, var.Name);
+                        writer.Write(-1);
+                        writer.Write(Crc32C.CalculateInv($"{obj.Name}.{var.Name}", XData.Endianness == Endianness.Big));
+                        strings.Add(writer.BaseStream.Position, var.Type);
+                        writer.Write(-1);
+                        writer.Write(var.Flags);
+                    }
+                }
+
+                if (Format < ModuleFormat.Basil || obj.Functions.Count > 0)
+                {
+                    long funcListStart = writer.BaseStream.Position;
+                    writer.WritePositionAt(objPos + 0xC);
+                    writer.Write(obj.Functions.Count);
+                    for (int j = 0; j < obj.Functions.Count; j++)
+                        writer.Write(-1);
+
+                    for (int j = 0; j < obj.Functions.Count; j++)
+                    {
+                        MintFunction func = obj.Functions[j];
+
+                        writer.WritePositionAt(funcListStart + 4 + (j * 4));
+
+                        strings.Add(writer.BaseStream.Position, func.Name);
+                        writer.Write(-1);
+                        writer.Write(Crc32C.CalculateInv($"{obj.Name}.{func.NameWithoutType()}", XData.Endianness == Endianness.Big));
+                        if (Format >= ModuleFormat.Basil)
+                        {
+                            writer.Write(func.Arguments);
+                            writer.Write(func.Registers);
+                        }
+                        long dataAddr = writer.BaseStream.Position;
+                        writer.Write(-1);
+                        writer.Write(func.Flags);
+
+                        writer.WritePositionAt(dataAddr);
+                        writer.Write(func.Data);
+                        writer.WritePadding();
+                    }
+                }
+
+                if (Format < ModuleFormat.Basil || obj.Enums.Count > 0)
+                {
+                    long enumListStart = writer.BaseStream.Position;
+                    writer.WritePositionAt(objPos + 0x10);
+                    writer.Write(obj.Enums.Count);
+                    for (int j = 0; j < obj.Enums.Count; j++)
+                        writer.Write(-1);
+
+                    for (int j = 0; j < obj.Enums.Count; j++)
+                    {
+                        MintEnum _enum = obj.Enums[j];
+
+                        writer.WritePositionAt(enumListStart + 4 + (j * 4));
+
+                        strings.Add(writer.BaseStream.Position, _enum.Name);
+                        writer.Write(-1);
+                        writer.Write(_enum.Value);
+                    }
+                }
+
+                if (Format < ModuleFormat.Basil || obj.Implements.Count > 0)
+                {
+                    writer.WritePositionAt(objPos + 0x14);
+                    writer.Write(obj.Implements.Count);
+                    for (int j = 0; j < obj.Implements.Count; j++)
+                        writer.Write((ushort)XRef.IndexOf(obj.Implements[j]));
+                    writer.WritePadding();
+                }
+
+                if (Format >= ModuleFormat.Basil && obj.Extends.Count > 0)
+                {
+                    writer.WritePositionAt(objPos + 0x18);
+                    writer.Write(obj.Extends.Count);
+                    for (int j = 0; j < obj.Extends.Count; j++)
+                        writer.Write(obj.Extends[j]);
+                    writer.WritePadding();
+                }
+            }
+
+            strings.WriteAll(writer);
+
+            XData.WriteFilesize(writer);
+            XData.WriteFooter(writer);
+        }
+
+        public bool ObjectExists(string name)
+        {
+            for (int i = 0; i < Objects.Count; i++)
+            {
+                if (Objects[i].Name == name)
                     return true;
             }
 
             return false;
         }
 
-        public ObjectType GetObjectType(string name)
+        public MintObject GetObject(string name)
         {
-            for (int i = 0; i < ObjectTypes.Count; i++)
+            for (int i = 0; i < Objects.Count; i++)
             {
-                if (ObjectTypes[i].Name == name)
-                    return ObjectTypes[i];
+                if (Objects[i].Name == name)
+                    return Objects[i];
             }
 
             return null;
         }
+
+        public MintObject this[int index] => Objects[index];
+
+        public MintObject this[string name] => GetObject(name);
     }
 }

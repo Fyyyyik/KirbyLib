@@ -52,6 +52,39 @@ namespace KirbyLib.Mint
             }
         }
 
+        public void Write(EndianBinaryWriter writer)
+        {
+            StringHelperContainer strings = new StringHelperContainer();
+
+            XData.WriteHeader(writer);
+
+            long moduleAddr = writer.BaseStream.Position;
+            writer.Write(Modules.Count);
+            for (int i = 0; i < Modules.Count; i++)
+            {
+                strings.Add(writer.BaseStream.Position, Modules[i].Name);
+                writer.Write(-1);
+                writer.Write(-1);
+            }
+
+            for (int i = 0; i < Modules.Count; i++)
+            {
+                writer.WritePositionAt(moduleAddr + 4 + (i * 8) + 4);
+                using (MemoryStream stream = new MemoryStream())
+                {
+                    using (EndianBinaryWriter moduleWriter = new EndianBinaryWriter(stream))
+                        Modules[i].Write(moduleWriter);
+
+                    writer.Write(stream.ToArray());
+                }
+            }
+
+            strings.WriteAll(writer);
+
+            XData.WriteFilesize(writer);
+            XData.WriteFooter(writer);
+        }
+
         /// <summary>
         /// Returns true if the given Module exists in the archive.
         /// </summary>
@@ -83,7 +116,7 @@ namespace KirbyLib.Mint
 
         public string GetVersionString() => "0.2.0.0";
 
-        protected ModuleRtDL ReadModule(EndianBinaryReader reader)
+        private ModuleRtDL ReadModule(EndianBinaryReader reader)
         {
             byte[] rawModule = XData.ExtractFile(reader);
 
@@ -95,5 +128,9 @@ namespace KirbyLib.Mint
 
             return module;
         }
+
+        public ModuleRtDL this[int index] => Modules[index];
+
+        public ModuleRtDL this[string name] => GetModule(name);
     }
 }

@@ -9,12 +9,13 @@ namespace KirbyLib.Mint
 {
     public static class MintUtil
     {
-        public static uint CalculateHash(string typeName, string name)
+        public static uint CalculateHash(string typeName, string name, bool bigEndian = false)
         {
-            if (!name.Contains('('))
-                return BitConverter.ToUInt32(Crc32C.CalculateInv(typeName + "." + name), 0);
+            return Crc32C.CalculateInv($"{typeName}.{name}", bigEndian);
+        }
 
-            // Search function signature to trim off the return type
+        public static string TrimFunctionType(string name)
+        {
             bool searchBackwards = false;
             int trimIdx = 0;
             for (int i = 0; i < name.Length && i >= 0;)
@@ -36,8 +37,37 @@ namespace KirbyLib.Mint
                 i += searchBackwards ? -1 : 1;
             }
 
-            string str = typeName + "." + new string(name.Skip(trimIdx).ToArray());
-            return BitConverter.ToUInt32(Crc32C.CalculateInv(str), 0);
+            return new string(name.Skip(trimIdx).ToArray());
+        }
+
+        public static string TrimFunctionSymbols(string name)
+        {
+            bool searchBackwards = false;
+            int endIdx = 0;
+            int trimIdx = 0;
+            for (int i = 0; i < name.Length && i >= 0;)
+            {
+                if (searchBackwards)
+                {
+                    if (name[i] == ' ')
+                    {
+                        trimIdx = i + 1;
+                        break;
+                    }
+                }
+                else
+                {
+                    if (name[i] == '(')
+                    {
+                        searchBackwards = true;
+                        endIdx = i;
+                    }
+                }
+
+                i += searchBackwards ? -1 : 1;
+            }
+
+            return new string(name.Skip(trimIdx).Take(endIdx - trimIdx).ToArray());
         }
     }
 }
