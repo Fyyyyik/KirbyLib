@@ -13,7 +13,7 @@ namespace KirbyLib.Mint
 
         public byte[] Version = new byte[4];
 
-        public List<Namespace> Namespaces = new List<Namespace>();
+        public List<MintNamespace> Namespaces = new List<MintNamespace>();
         public List<Module> Modules = new List<Module>();
 
         public Archive(byte[] version)
@@ -42,7 +42,8 @@ namespace KirbyLib.Mint
             uint moduleCount = reader.ReadUInt32();
             uint moduleAddr = reader.ReadUInt32();
             uint endOfDataAddr = reader.ReadUInt32();
-            reader.ReadUInt64();
+            uint orphanModules = reader.ReadUInt32();
+            reader.ReadUInt32();
             int rootNamespaces = reader.ReadInt32();
 
             reader.BaseStream.Position = header + headerLength;
@@ -50,7 +51,7 @@ namespace KirbyLib.Mint
 
             long namespaceListAddr = reader.BaseStream.Position;
             reader.BaseStream.Position = indexTable;
-            Namespaces = new List<Namespace>();
+            Namespaces = new List<MintNamespace>();
             for (int i = 0; i < namespaceCount; i++)
             {
                 reader.BaseStream.Position = indexTable + (i * 4);
@@ -58,7 +59,7 @@ namespace KirbyLib.Mint
 
                 reader.BaseStream.Position = namespaceListAddr + (index * 0x14);
 
-                Namespace n = new Namespace();
+                MintNamespace n = new MintNamespace();
                 n.Name = reader.ReadStringOffset();
                 n.Modules = reader.ReadInt32();
                 n.TotalModules = reader.ReadInt32();
@@ -122,7 +123,7 @@ namespace KirbyLib.Mint
             writer.Write(Modules.Count);
             writer.Write(-1);
             writer.Write(-1);
-            writer.Write(Version[0] >= 7 ? 1 : 0);
+            writer.Write(Modules.Count(x => !x.Name.Contains('.')));
             writer.Write(0);
             writer.Write(Namespaces.Count(x => !x.Name.Contains('.')));
 
@@ -152,13 +153,11 @@ namespace KirbyLib.Mint
             {
                 int index = writeOrder.IndexOf(Namespaces[i].Name);
                 writer.Write(index + 1);
-                /*
                 for (int n = 0; n < writeOrder.Count; n++)
                 {
                     if (Namespaces.First(x => x.Name == writeOrder[n]).Unknown == index)
                         writer.WritePositionAt(namespaceListStart + (n * 0x14) + 0x10);
                 }
-                */
             }
 
             writer.WritePositionAt(header + 0xC);
@@ -177,7 +176,10 @@ namespace KirbyLib.Mint
                 using (MemoryStream stream = new MemoryStream())
                 {
                     using (EndianBinaryWriter moduleWriter = new EndianBinaryWriter(stream))
+                    {
+                        Modules[i].Format = GetModuleFormat();
                         Modules[i].Write(moduleWriter);
+                    }
 
                     writer.Write(stream.ToArray());
                 }
@@ -203,7 +205,7 @@ namespace KirbyLib.Mint
             return false;
         }
 
-        public Namespace GetNamespace(string name)
+        public MintNamespace GetNamespace(string name)
         {
             for (int i = 0; i < Namespaces.Count; i++)
             {
@@ -214,6 +216,9 @@ namespace KirbyLib.Mint
             return null;
         }
 
+        /// <summary>
+        /// Returns true if the given Module exists in the archive.
+        /// </summary>
         public bool ModuleExists(string name)
         {
             for (int i = 0; i < Modules.Count; i++)
@@ -225,6 +230,10 @@ namespace KirbyLib.Mint
             return false;
         }
 
+        /// <summary>
+        /// Gets a given Module from the archive.<br/>
+        /// If it doesn't exist, null is returned.
+        /// </summary>
         public Module GetModule(string name)
         {
             for (int i = 0; i < Modules.Count; i++)
@@ -243,16 +252,27 @@ namespace KirbyLib.Mint
             byte[] rawModule = XData.ExtractFile(reader);
 
             Module module = new Module();
-            if (Version[0] < 2 && Version[1] < 1)
-                module.Format = ModuleFormat.MintOld;
-            else if (Version[0] >= 7)
-                module.Format = ModuleFormat.Basil;
+            module.Format = GetModuleFormat();
 
             using (MemoryStream stream = new MemoryStream(rawModule))
             using (EndianBinaryReader moduleReader = new EndianBinaryReader(stream))
                 module.Read(moduleReader);
 
             return module;
+        }
+
+        public ModuleFormat GetModuleFormat()
+        {
+            ModuleFormat fmt = ModuleFormat.Mint;
+
+            if (Version[0] < 2 && Version[1] < 1)
+                fmt = ModuleFormat.MintOld;
+            else if (Version[0] >= 7 && Version[2] < 6)
+                fmt = ModuleFormat.BasilKatFL;
+            else if (Version[0] >= 7)
+                fmt = ModuleFormat.Basil;
+
+            return fmt;
         }
 
         public Module this[int index] => Modules[index];

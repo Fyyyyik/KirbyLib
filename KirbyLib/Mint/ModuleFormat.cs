@@ -8,8 +8,10 @@ namespace KirbyLib.Mint
 {
     public enum ModuleFormat
     {
+        RtDL,
         MintOld,
         Mint,
+        BasilKatFL,
         Basil
     }
 }

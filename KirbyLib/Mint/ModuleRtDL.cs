@@ -8,16 +8,31 @@ using System.Threading.Tasks;
 
 namespace KirbyLib.Mint
 {
+    /// <summary>
+    /// A representation of a Mint Module as found in version 0.2 Mint Archives.
+    /// </summary>
     public class ModuleRtDL
     {
         public XData XData { get; private set; } = new XData();
 
+        /// <summary>
+        /// The name of the Module.
+        /// </summary>
         public string Name;
 
-        public ModuleFormat Format { get; } = ModuleFormat.MintOld;
+        public ModuleFormat Format { get; } = ModuleFormat.RtDL;
 
+        /// <summary>
+        /// Raw bytes making up static constant data accessible by functions in the Module's Objects.
+        /// </summary>
         public List<byte> SData = new List<byte>();
+        /// <summary>
+        /// External references.
+        /// </summary>
         public List<string> XRef = new List<string>();
+        /// <summary>
+        /// A list of Objects in this Module.
+        /// </summary>
         public List<MintObject> Objects = new List<MintObject>();
 
         public ModuleRtDL() { }
@@ -75,9 +90,9 @@ namespace KirbyLib.Mint
                     reader.BaseStream.Position = varAddr + 4 + (v * 4);
                     reader.BaseStream.Position = reader.ReadUInt32();
 
-                    MintVariable variable = new MintVariable();
-                    variable.Name = reader.ReadStringOffset();
-                    variable.Type = reader.ReadStringOffset();
+                    string name = reader.ReadStringOffset();
+                    string type = reader.ReadStringOffset();
+                    MintVariable variable = new MintVariable(type, name);
 
                     obj.Variables.Add(variable);
                 }
@@ -92,8 +107,8 @@ namespace KirbyLib.Mint
                     uint endAddr = f < funcCount - 1 ? reader.ReadUInt32() : objEndAddr;
                     reader.BaseStream.Position = addr;
 
-                    MintFunction func = new MintFunction();
-                    func.Name = reader.ReadStringOffset();
+                    string name = reader.ReadStringOffset();
+                    MintFunction func = new MintFunction(name);
                     uint dataAddr = reader.ReadUInt32();
 
                     reader.BaseStream.Position = dataAddr;

@@ -2,6 +2,7 @@ using KirbyLib;
 using KirbyLib.IO;
 using KirbyLib.Mapping;
 using KirbyLib.Mint;
+using System;
 using System.IO;
 
 namespace KirbyLib_Tests
@@ -74,25 +75,29 @@ namespace KirbyLib_Tests
         public void MintKSATest()
         {
             const string IN_PATH = @"D:\Game Dumps\Kirby Star Allies\romfs\mint\Step.bin";
+            const string MODULE_NAME = "Scn.Step.Hero.Common.StateSliding";
+            const string FUNCTION_NAME = "procAnim";
 
             Archive mint;
             using (FileStream stream = new FileStream(IN_PATH, FileMode.Open, FileAccess.Read))
             using (EndianBinaryReader reader = new EndianBinaryReader(stream))
                 mint = new Archive(reader);
 
-            /*
             Console.WriteLine($"Version: {mint.GetVersionString()}");
-            Console.WriteLine("Scn.Step.Hero.Common.StateSliding.procAnim():");
-            if (mint.ModuleExists("Scn.Step.Hero.Common.StateSliding"))
+            if (mint.ModuleExists(MODULE_NAME))
             {
-                Module mod = mint.GetModule("Scn.Step.Hero.Common.StateSliding");
-                MintFunction func = mod[0].GetFunctionByShortName("procAnim");
-                for (int i = 0; i < func.Data.Length; i += 4)
+                Module mod = mint.GetModule(MODULE_NAME);
+                if (mod[0].FunctionExistsByShortName(FUNCTION_NAME))
                 {
-                    Console.WriteLine($"  {func.Data[i + 0]:X2} {func.Data[i + 1]:X2} {func.Data[i + 2]:X2} {func.Data[i + 3]:X2}");
+                    MintFunction func = mod[0].GetFunctionByShortName(FUNCTION_NAME);
+                    Console.WriteLine($"{mod.Name}.{func.NameWithoutType()}:");
+                    for (int i = 0; i < func.Data.Length; i += 4)
+                    {
+                        Console.WriteLine($"  {func.Data[i + 0]:X2} {func.Data[i + 1]:X2} {func.Data[i + 2]:X2} {func.Data[i + 3]:X2}");
+                    }
                 }
             }
-            */
+            /*
             Console.WriteLine($"Namespaces: {mint.Namespaces.Count}");
             for (int i = 0; i < mint.Namespaces.Count; i++)
             {
@@ -102,6 +107,7 @@ namespace KirbyLib_Tests
                 Console.WriteLine($"  - Children: {mint.Namespaces[i].ChildNamespaces}");
                 Console.WriteLine($"  - Unknown: {mint.Namespaces[i].Unknown}");
             }
+            */
         }
 
         [TestMethod]
@@ -140,7 +146,7 @@ namespace KirbyLib_Tests
             using (EndianBinaryReader reader = new EndianBinaryReader(stream))
                 archive.Read(reader);
 
-            bool NamespaceEqual(Namespace a, Namespace b)
+            bool NamespaceEqual(MintNamespace a, MintNamespace b)
             {
                 return a.Name == b.Name && a.Modules == b.Modules && a.TotalModules == b.TotalModules && a.ChildNamespaces == b.ChildNamespaces && a.Unknown == b.Unknown;
             }
@@ -171,7 +177,6 @@ namespace KirbyLib_Tests
             }
             */
         }
-
 
         [TestMethod]
         public void MintKatFLIOTest()
@@ -209,7 +214,75 @@ namespace KirbyLib_Tests
             using (EndianBinaryReader reader = new EndianBinaryReader(stream))
                 archive.Read(reader);
 
-            bool NamespaceEqual(Namespace a, Namespace b)
+            bool NamespaceEqual(MintNamespace a, MintNamespace b)
+            {
+                return a.Name == b.Name && a.Modules == b.Modules && a.TotalModules == b.TotalModules && a.ChildNamespaces == b.ChildNamespaces && a.Unknown == b.Unknown;
+            }
+
+            Console.WriteLine("Successfully re-read archive");
+            Console.WriteLine($"Namespaces: {archive.Namespaces.Count}");
+            for (int i = 0; i < archive.Namespaces.Count; i++)
+            {
+                if (!NamespaceEqual(namespaces[i], archive.Namespaces[i]))
+                {
+                    Console.WriteLine($" - Namespace {i} differs!");
+                    Console.WriteLine($"  - Name:          Original = {namespaces[i].Name}, New = {archive.Namespaces[i].Name}");
+                    Console.WriteLine($"  - Modules:       Original = {namespaces[i].Modules}, New = {archive.Namespaces[i].Modules}");
+                    Console.WriteLine($"  - Total Modules: Original = {namespaces[i].TotalModules}, New = {archive.Namespaces[i].TotalModules}");
+                    Console.WriteLine($"  - Children:      Original = {namespaces[i].ChildNamespaces}, New = {archive.Namespaces[i].ChildNamespaces}");
+                    Console.WriteLine($"  - Unknown:       Original = {namespaces[i].Unknown}, New = {archive.Namespaces[i].Unknown}");
+                }
+            }
+
+            /*
+            for (int i = 0; i < archive.Namespaces.Count; i++)
+            {
+                Console.WriteLine($"- {i}: {archive.Namespaces[i].Name}");
+                Console.WriteLine($"  - Scripts: {archive.Namespaces[i].Modules}");
+                Console.WriteLine($"  - TotalScripts: {archive.Namespaces[i].TotalModules}");
+                Console.WriteLine($"  - Children: {archive.Namespaces[i].ChildNamespaces}");
+                Console.WriteLine($"  - Unknown: {archive.Namespaces[i].Unknown} ({archive.Namespaces[archive.Namespaces[i].Unknown].Name})");
+            }
+            */
+        }
+
+        [TestMethod]
+        public void MintRtDLDXIOTest()
+        {
+            const string IN_PATH = @"D:\Game Dumps\Kirby's Return to Dream Land Deluxe\romfs\basil\ScnStep.bin";
+            const string OUT_PATH = "rtdldx_basil_scnstep_out.bin";
+
+            Archive archive;
+            using (FileStream stream = new FileStream(IN_PATH, FileMode.Open, FileAccess.Read))
+            using (EndianBinaryReader reader = new EndianBinaryReader(stream))
+                archive = new Archive(reader);
+
+            Console.WriteLine("Successfully read archive");
+            Console.WriteLine($"Namespaces: {archive.Namespaces.Count}");
+            /*
+            for (int i = 0; i < archive.Namespaces.Count; i++)
+            {
+                Console.WriteLine($"- {i}: {archive.Namespaces[i].Name}");
+                Console.WriteLine($"  - Scripts: {archive.Namespaces[i].Modules}");
+                Console.WriteLine($"  - TotalScripts: {archive.Namespaces[i].TotalModules}");
+                Console.WriteLine($"  - Children: {archive.Namespaces[i].ChildNamespaces}");
+                Console.WriteLine($"  - Unknown: {archive.Namespaces[i].Unknown} ({archive.Namespaces[archive.Namespaces[i].Unknown].Name})");
+            }
+            */
+
+            var namespaces = archive.Namespaces;
+
+            using (FileStream stream = new FileStream(OUT_PATH, FileMode.Create, FileAccess.Write))
+            using (EndianBinaryWriter writer = new EndianBinaryWriter(stream))
+                archive.Write(writer);
+
+            Console.WriteLine("Successfully wrote archive");
+
+            using (FileStream stream = new FileStream(OUT_PATH, FileMode.Open, FileAccess.Read))
+            using (EndianBinaryReader reader = new EndianBinaryReader(stream))
+                archive.Read(reader);
+
+            bool NamespaceEqual(MintNamespace a, MintNamespace b)
             {
                 return a.Name == b.Name && a.Modules == b.Modules && a.TotalModules == b.TotalModules && a.ChildNamespaces == b.ChildNamespaces && a.Unknown == b.Unknown;
             }

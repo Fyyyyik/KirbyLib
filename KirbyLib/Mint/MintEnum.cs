@@ -19,5 +19,22 @@ namespace KirbyLib.Mint
         /// The value of the enum.
         /// </summary>
         public int Value;
+        /// <summary>
+        /// Bitflags that tell the Mint VM how to treat the enum.<br/>
+        /// <b>Note:</b> Introduced in Basil 7.0.6.
+        /// </summary>
+        public uint Flags;
+
+        public MintEnum(string name, int value)
+        {
+            Name = name;
+            Value = value;
+        }
+
+        public MintEnum(KeyValuePair<string, int> pair)
+        {
+            Name = pair.Key;
+            Value = pair.Value;
+        }
     }
 }

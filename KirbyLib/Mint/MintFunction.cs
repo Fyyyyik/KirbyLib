@@ -31,9 +31,15 @@ namespace KirbyLib.Mint
         /// </summary>
         public byte[] Data;
         /// <summary>
-        /// Bitflags that determine how the Mint VM treats the function.
+        /// Bitflags that determine how the Mint VM treats the function.<br/>
+        /// <b>Note:</b> Introduced in Mint 1.1.3.
         /// </summary>
         public uint Flags;
+
+        public MintFunction(string name)
+        {
+            Name = name;
+        }
 
         /// <summary>
         /// Returns the function name without the return type.

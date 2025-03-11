@@ -30,7 +30,7 @@ namespace KirbyLib.Mint
         public List<MintEnum> Enums = new List<MintEnum>();
         /// <summary>
         /// A list of object types (hashes) this object implements.<br/>
-        /// <b>Note:</b> Introduced in Mint 1.0.5.
+        /// <b>Note:</b> Introduced in Mint 1.1.3.
         /// </summary>
         public List<uint> Implements = new List<uint>();
         /// <summary>
@@ -79,6 +79,20 @@ namespace KirbyLib.Mint
             for (int i = 0; i < Functions.Count; i++)
             {
                 if (Functions[i].Name == name)
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Returns true if the given function exists, by its short name (i.e. "procAnim")
+        /// </summary>
+        public bool FunctionExistsByShortName(string name)
+        {
+            for (int i = 0; i < Functions.Count; i++)
+            {
+                if (Functions[i].GetShortName() == name)
                     return true;
             }
 
@@ -189,6 +203,16 @@ namespace KirbyLib.Mint
                 e.Add(Enums[i].Name, Enums[i].Value);
 
             return e;
+        }
+
+        /// <summary>
+        /// Sets the object's enums with a dictionary.
+        /// </summary>
+        public void SetEnumsWithDictionary(Dictionary<string, int> dict)
+        {
+            Enums = new List<MintEnum>();
+            foreach (var pair in dict)
+                Enums.Add(new MintEnum(pair));
         }
     }
 }

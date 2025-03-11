@@ -24,5 +24,11 @@ namespace KirbyLib.Mint
         /// Bitflags that tell the Mint VM how to treat this variable.
         /// </summary>
         public uint Flags;
+
+        public MintVariable(string type, string name)
+        {
+            Type = type;
+            Name = name;
+        }
     }
 }

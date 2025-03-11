@@ -4,7 +4,7 @@
 ## Supported File Formats
 All sections of all formats are fully supported. The library is intended to match internal names as close as possible for ease of modding and research.
 
-|                             | 2D Map | 3D Map | BGM Setting | Cinemo | FDG | Generic Archives | Mint/Basil[^1] | Msg Filter | Yaml | XData |
+|                             | 2D Map | 3D Map | BGM Setting | Cinemo | FDG | Generic Archives | Mint/Basil | Msg Filter | Yaml | XData |
 | :-------------------------- | :----: | :----: | :---------: | :----: | :-: | :--------------: | :--: | :--------: | :--: | :---: |
 | Return to Dream Land        |   ✔️   |  ➖   |     ➖      |   ➖   | ✔️ |         ✔️       | ✔️ |     ➖     |  ➖  |  ✔️   |
 | Dream Collection            |   ✔️   |  ➖   |     ➖      |   ➖   | ✔️ |         ✔️       | ✔️ |     ➖     |  ➖  |  ✔️   |
@@ -20,8 +20,8 @@ All sections of all formats are fully supported. The library is intended to matc
 | Blowout Blast               |   ➖   |  ❌   |     ➖      |   ➖   | ✔️ |         ✔️       | ✔️ |     ➖     |  ✔️  |  ✔️   |
 | Team Clash Deluxe           |   ✔️   |  ➖   |     ➖      |   ➖   | ✔️ |         ✔️       | ✔️ |     ➖     |  ✔️  |  ✔️   |
 | Battle Royale               |   ➖   |  ➖   |     ➖      |   ➖   | ✔️ |         ➖       | ✔️ |     ➖     |  ✔️  |  ✔️   |
-| Star Allies                 |   ✔️   |  ✔️   |     ➖      |   ✔️[^2]   | ✔️ |         ➖       | ✔️ |     ✔️     |  ✔️  |  ✔️   |
-| Super Clash                 |   ✔️   |  ➖   |     ➖      |   ✔️[^2]   | ✔️ |         ➖       | ✔️ |     ✔️     |  ✔️  |  ✔️   |
+| Star Allies                 |   ✔️   |  ✔️   |     ➖      |   ✔️[^1]   | ✔️ |         ➖       | ✔️ |     ✔️     |  ✔️  |  ✔️   |
+| Super Clash                 |   ✔️   |  ➖   |     ➖      |   ✔️[^1]   | ✔️ |         ➖       | ✔️ |     ✔️     |  ✔️  |  ✔️   |
 | Fighters 2                  |   ✔️   |  ➖   |     ➖      |   ✔️   | ✔️ |         ✔️       | ✔️ |     ✔️     |  ✔️  |  ✔️   |
 | Forgotten Land              |   ➖   |  ➖   |     ➖      |   ✔️   | ✔️ |         ➖       | ✔️ |     ✔️     |  ✔️  |  ✔️   |
 | Dream Buffet                |   ➖   |  ➖   |     ➖      |   ✔️   | ✔️ |         ➖       | ✔️ |     ✔️     |  ✔️  |  ✔️   |
@@ -29,5 +29,4 @@ All sections of all formats are fully supported. The library is intended to matc
 
 ### For more information about HAL's scripting bytecode, Mint/Basil, please see [MintWorkshop](https://github.com/firubii/MintWorkshop).
 
-[^1]: Only reading supported.
-[^2]: Cinemo support is in a separate class, [`CinemoKSA`](https://github.com/firubii/KirbyLib/blob/main/KirbyLib/CinemoKSA.cs), due to large format differences.
+[^1]: Cinemo support is in a separate class, [`CinemoKSA`](https://github.com/firubii/KirbyLib/blob/main/KirbyLib/CinemoKSA.cs), due to large format differences.
