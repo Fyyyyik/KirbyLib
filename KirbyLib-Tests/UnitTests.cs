@@ -380,12 +380,13 @@ namespace KirbyLib_Tests
             string[] maps = Directory.GetFiles(PATH, "*.dat", SearchOption.AllDirectories);
             for (int i = 0; i < maps.Length; i++)
             {
+                Console.WriteLine(maps[i].Remove(0, PATH.Length));
                 using (FileStream stream = new FileStream(maps[i], FileMode.Open, FileAccess.Read))
                 using (EndianBinaryReader reader = new EndianBinaryReader(stream))
                 {
                     MapRtDL map = new MapRtDL(reader);
 
-                    PrintMapInfo(maps[i].Remove(0, PATH.Length), map);
+                    PrintMapInfo(map);
                 }
             }
         }
@@ -398,12 +399,13 @@ namespace KirbyLib_Tests
             string[] maps = Directory.GetFiles(PATH, "*.bin", SearchOption.AllDirectories);
             for (int i = 0; i < maps.Length; i++)
             {
+                Console.WriteLine(maps[i].Remove(0, PATH.Length));
                 using (FileStream stream = new FileStream(maps[i], FileMode.Open, FileAccess.Read))
                 using (EndianBinaryReader reader = new EndianBinaryReader(stream))
                 {
                     MapRtDL map = new MapRtDL(reader);
 
-                    PrintMapInfo(maps[i].Remove(0, PATH.Length), map);
+                    PrintMapInfo(map);
                 }
             }
 
@@ -682,16 +684,16 @@ namespace KirbyLib_Tests
                 map.Write(writer);
         }
 
-        void PrintMapInfo(string name, MapRtDL map)
+        void PrintMapInfo(MapRtDL map)
         {
+            /*
             if (map.Bosses.Count > 0)
             {
-                Console.WriteLine(name);
                 for (int i = 0; i < map.Bosses.Count; i++)
                 {
                     Console.WriteLine($"\t- Boss {i}:");
                     Console.WriteLine($"\t\t- Kind: {map.Bosses[i].Kind}");
-                    Console.WriteLine($"\t\t- Sub Kind: {map.Bosses[i].SubKind}");
+                    Console.WriteLine($"\t\t- Variation: {map.Bosses[i].Variation}");
                     Console.WriteLine($"\t\t- Level: {map.Bosses[i].Level}");
                     Console.WriteLine($"\t\t- TerrainGroup: {map.Bosses[i].TerrainGroup}");
                     Console.WriteLine($"\t\t- Has Super Ability: {map.Bosses[i].HasSuperAbility}");
@@ -700,37 +702,59 @@ namespace KirbyLib_Tests
                     Console.WriteLine($"\t\t- Unknown: {map.Bosses[i].Unknown}");
                 }
             }
-
-            /*if (map.DecorationObjects.Length > 0)
-                    {
-                        Console.WriteLine($"{maps[i].Remove(0, PATH.Length)} contains {map.DecorationObjects.Length} decor objects");
-                        for (int l = 0; l < map.DecorationObjects.Length; l++)
-                        {
-                            Console.WriteLine($"\t- {l}:");
-                            Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Kind);
-                            Console.WriteLine($"\t\t- " + map.DecorationObjects[l].X1);
-                            Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Y1);
-                            Console.WriteLine($"\t\t- " + map.DecorationObjects[l].X2);
-                            Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Y2);
-                            Console.WriteLine($"\t\t- " + map.DecorationObjects[l].X3);
-                            Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Y3);
-                            Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Param7);
-                            Console.WriteLine($"\t\t- " + map.DecorationObjects[l].TerrainGroup);
-                            Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Param9);
-                            Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Param10);
-                            Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Param11);
-                            Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Param12);
-                            Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Param13);
-                            Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Param14);
-                            Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Param15);
-                            Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Param16);
-                        }
-                    }
-
-                    if (map.Type != MapRtDL.MapType.Normal)
-                    {
-                        Console.WriteLine($"{maps[i].Remove(0, PATH.Length)} is of type {map.Type}");
-                    }*/
+            */
+            if (map.Enemies.Count > 0)
+            {
+                for (int i = 0; i < map.Enemies.Count; i++)
+                {
+                    Console.WriteLine($"\t- Enemy {i}:");
+                    Console.WriteLine($"\t\t- Kind: {map.Enemies[i].Kind}");
+                    Console.WriteLine($"\t\t- Variation: {map.Enemies[i].Variation}");
+                    Console.WriteLine($"\t\t- Level: {map.Enemies[i].Level}");
+                    Console.WriteLine($"\t\t- Dir Type: {map.Enemies[i].Direction}");
+                    Console.WriteLine($"\t\t- Another Dimension Size: {map.Enemies[i].AnotherDimensionSize}");
+                    Console.WriteLine($"\t\t- Extra Mode Size: {map.Enemies[i].ExtraModeSize}");
+                    Console.WriteLine($"\t\t- Terrain Group: {map.Enemies[i].TerrainGroup}");
+                    Console.WriteLine($"\t\t- Has Super Ability: {map.Enemies[i].HasSuperAbility}");
+                    Console.WriteLine($"\t\t- X: {map.Enemies[i].X}");
+                    Console.WriteLine($"\t\t- Y: {map.Enemies[i].Y}");
+                    Console.WriteLine($"\t\t- DX Unk 1: {map.Enemies[i].DXUnk1}");
+                    Console.WriteLine($"\t\t- DX Unk 2: {map.Enemies[i].DXUnk2}");
+                }
+            }
+            /*
+            if (map.DecorationObjects.Length > 0)
+            {
+                Console.WriteLine($"{maps[i].Remove(0, PATH.Length)} contains {map.DecorationObjects.Length} decor objects");
+                for (int l = 0; l < map.DecorationObjects.Length; l++)
+                {
+                    Console.WriteLine($"\t- {l}:");
+                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Kind);
+                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].X1);
+                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Y1);
+                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].X2);
+                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Y2);
+                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].X3);
+                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Y3);
+                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Param7);
+                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].TerrainGroup);
+                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Param9);
+                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Param10);
+                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Param11);
+                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Param12);
+                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Param13);
+                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Param14);
+                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Param15);
+                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Param16);
+                }
+            }
+            */
+            /*
+            if (map.Type != MapRtDL.MapType.Normal)
+            {
+                Console.WriteLine($"{maps[i].Remove(0, PATH.Length)} is of type {map.Type}");
+            }
+            */
             /*
             if (map.CollisionMoveGroups.Count(x => x.IsValid) > 0)
             {

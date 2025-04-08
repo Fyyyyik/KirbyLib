@@ -17,7 +17,7 @@ namespace KirbyLib.Mapping
     ///     <item>Kirby's Return to Dream Land Deluxe<br/><b>Note:</b> XData must be version 5.0 and Little Endian</item>
     /// </list>
     /// </summary>
-    public class MapRtDL : Map2D
+    public partial class MapRtDL : Map2D
     {
         #region Structs
 
@@ -170,8 +170,8 @@ namespace KirbyLib.Mapping
 
         public struct Boss
         {
-            public uint Kind;
-            public uint SubKind;
+            public BinBossKind Kind;
+            public BinBossVariation Variation;
             public uint Level;
             public int TerrainGroup;
             public bool HasSuperAbility;
@@ -182,7 +182,7 @@ namespace KirbyLib.Mapping
 
         public struct CarryItem
         {
-            public uint Kind;
+            public BinCarryItemKind Kind;
             public uint AppearGroup;
             public bool CanRespawn;
             public int TerrainGroup;
@@ -192,12 +192,12 @@ namespace KirbyLib.Mapping
 
         public struct Enemy
         {
-            public uint Kind;
-            public uint Variation;
+            public BinEnemyKind Kind;
+            public BinEnemyVariation Variation;
             public uint Level;
-            public uint Direction;
-            public uint AnotherDimensionSize;
-            public uint ExtraModeSize;
+            public BinEnemyDirType Direction;
+            public BinEnemySize AnotherDimensionSize;
+            public BinEnemySize ExtraModeSize;
             public int TerrainGroup;
             public bool HasSuperAbility;
             public int DXUnk1;
@@ -211,36 +211,29 @@ namespace KirbyLib.Mapping
             public uint Kind;
             public GridPos X;
             public GridPos Y;
-            public uint Param1;
-            public uint Param2;
-            public uint Param3;
-            public uint Param4;
-            public uint Param5;
-            public uint Param6;
-            public uint Param7;
-            public uint Param8;
-            public uint Param9;
-            public uint Param10;
-            public uint Param11;
-            public uint Param12;
-            public uint Unknown;
+            public int Param1;
+            public int Param2;
+            public int Param3;
+            public int Param4;
+            public int Param5;
+            public int Param6;
+            public int Param7;
+            public int Param8;
+            public int Param9;
+            public int Param10;
+            public int Param11;
+            public int Param12;
+            public int Unknown;
         }
 
         public struct Item
         {
-            public uint Kind;
+            public BinItemKind Kind;
             public uint Variation;
             public uint Level;
             public int TerrainGroup;
             public GridPos X;
             public GridPos Y;
-        }
-
-        public enum BinDecoObjectKind : uint
-        {
-            AreaLightDirectional,
-            AreaLightPoint,
-            AreaLightAmbient
         }
 
         public struct DecorObject
@@ -254,43 +247,14 @@ namespace KirbyLib.Mapping
             public GridPos Y3;
             public uint Unknown;
             public int TerrainGroup;
-            public uint Param1;
-            public uint Param2;
-            public uint Param3;
-            public uint Param4;
-            public uint Param5;
-            public uint Param6;
-            public uint Param7;
-            public uint Param8;
-        }
-
-        public enum SFXKind : uint
-        {
-            None,
-            Darkness,
-            Monotone
-        }
-
-        public enum MapType : uint
-        {
-            Normal,
-            /// <summary>
-            /// Disallows Mid-bosses from locking the camera and spawning health bars
-            /// </summary>
-            MidbossRush,
-            Shooting,
-            /// <summary>
-            /// The most complicated map type<br/>
-            /// <list type="bullet">
-            ///     <item>Doubles the amount of memory a Boss's Heap uses (0x20000 -> 0x40000 bytes)</item>
-            ///     <item>Limits the amount of loaded Bosses from 4 to 1</item>
-            ///     <item>Increases the amount of memory a Weapon's Heap uses (0x4000 -> 0x4C00 bytes)</item>
-            ///     <item>Limits the amount of loaded Weapons from 96 to 80</item>
-            ///     <item>Enables the swirling ground particle effects from the final battle</item>
-            /// </list>
-            /// </summary>
-            FinalBattle,
-            LevelMap
+            public int Param1;
+            public int Param2;
+            public int Param3;
+            public int Param4;
+            public int Param5;
+            public int Param6;
+            public int Param7;
+            public int Param8;
         }
 
         #endregion
@@ -300,6 +264,17 @@ namespace KirbyLib.Mapping
         public override int Width => Collision[0].GetLength(0);
 
         public override int Height => Collision[0].GetLength(1);
+
+        public bool IsDeluxe
+        {
+            get => XData.Version[0] == 5;
+            set
+            {
+                XData.Version[0] = value ? (byte)5 : (byte)2; //what???????????????????
+                XData.Version[1] = 0;
+                XData.Endianness = value ? Endianness.Little : Endianness.Big;
+            }
+        }
 
         /// <summary>
         /// Each layer of fixed collision. Multiple collision layers can be stored in a map, but only 1 is ever used.
@@ -451,8 +426,8 @@ namespace KirbyLib.Mapping
             for (int i = 0; i < bossCount; i++)
             {
                 Boss boss = new Boss();
-                boss.Kind = reader.ReadUInt32();
-                boss.SubKind = reader.ReadUInt32();
+                boss.Kind = (BinBossKind)reader.ReadUInt32();
+                boss.Variation = (BinBossVariation)reader.ReadUInt32();
                 boss.Level = reader.ReadUInt32();
                 boss.TerrainGroup = reader.ReadInt32();
                 boss.HasSuperAbility = reader.ReadInt32() != 0;
@@ -469,7 +444,7 @@ namespace KirbyLib.Mapping
             for (int i = 0; i < carryItemCount; i++)
             {
                 CarryItem item = new CarryItem();
-                item.Kind = reader.ReadUInt32();
+                item.Kind = (BinCarryItemKind)reader.ReadUInt32();
                 item.AppearGroup = reader.ReadUInt32();
                 item.CanRespawn = reader.ReadInt32() != 0;
                 item.TerrainGroup = reader.ReadInt32();
@@ -574,14 +549,14 @@ namespace KirbyLib.Mapping
                 obj.Y3 = reader.ReadUInt32();
                 obj.Unknown = reader.ReadUInt32();
                 obj.TerrainGroup = reader.ReadInt32();
-                obj.Param1 = reader.ReadUInt32();
-                obj.Param2 = reader.ReadUInt32();
-                obj.Param3 = reader.ReadUInt32();
-                obj.Param4 = reader.ReadUInt32();
-                obj.Param5 = reader.ReadUInt32();
-                obj.Param6 = reader.ReadUInt32();
-                obj.Param7 = reader.ReadUInt32();
-                obj.Param8 = reader.ReadUInt32();
+                obj.Param1 = reader.ReadInt32();
+                obj.Param2 = reader.ReadInt32();
+                obj.Param3 = reader.ReadInt32();
+                obj.Param4 = reader.ReadInt32();
+                obj.Param5 = reader.ReadInt32();
+                obj.Param6 = reader.ReadInt32();
+                obj.Param7 = reader.ReadInt32();
+                obj.Param8 = reader.ReadInt32();
 
                 DecorationObjects.Add(obj);
             }
@@ -592,18 +567,29 @@ namespace KirbyLib.Mapping
             for (int i = 0; i < enemyCount; i++)
             {
                 Enemy enemy = new Enemy();
-                enemy.Kind = reader.ReadUInt32();
-                enemy.Variation = reader.ReadUInt32();
+                uint kind = reader.ReadUInt32();
+                uint variation = reader.ReadUInt32();
+                if (!IsDeluxe)
+                {
+                    // Correct kind and variation if basegame
+                    if (kind >= 100)
+                        kind += 9;
+                    if (variation >= 337)
+                        kind += 83;
+                }
+
+                enemy.Kind = (BinEnemyKind)kind;
+                enemy.Variation = (BinEnemyVariation)variation;
                 enemy.Level = reader.ReadUInt32();
-                enemy.Direction = reader.ReadUInt32();
-                enemy.AnotherDimensionSize = reader.ReadUInt32();
-                enemy.ExtraModeSize = reader.ReadUInt32();
+                enemy.Direction = (BinEnemyDirType)reader.ReadUInt32();
+                enemy.AnotherDimensionSize = (BinEnemySize)reader.ReadUInt32();
+                enemy.ExtraModeSize = (BinEnemySize)reader.ReadUInt32();
                 enemy.TerrainGroup = reader.ReadInt32();
-                enemy.HasSuperAbility = reader.ReadInt32() == 1;
+                enemy.HasSuperAbility = reader.ReadUInt32() == 1;
                 enemy.X = reader.ReadUInt32();
                 enemy.Y = reader.ReadUInt32();
 
-                if (XData.Version[0] == 5)
+                if (IsDeluxe)
                 {
                     enemy.DXUnk1 = reader.ReadInt32();
                     enemy.DXUnk2 = reader.ReadInt32();
@@ -639,19 +625,19 @@ namespace KirbyLib.Mapping
                 gimmick.Kind = reader.ReadUInt32();
                 gimmick.X = reader.ReadUInt32();
                 gimmick.Y = reader.ReadUInt32();
-                gimmick.Param1 = reader.ReadUInt32();
-                gimmick.Param2 = reader.ReadUInt32();
-                gimmick.Param3 = reader.ReadUInt32();
-                gimmick.Param4 = reader.ReadUInt32();
-                gimmick.Param5 = reader.ReadUInt32();
-                gimmick.Param6 = reader.ReadUInt32();
-                gimmick.Param7 = reader.ReadUInt32();
-                gimmick.Param8 = reader.ReadUInt32();
-                gimmick.Param9 = reader.ReadUInt32();
-                gimmick.Param10 = reader.ReadUInt32();
-                gimmick.Param11 = reader.ReadUInt32();
-                gimmick.Param12 = reader.ReadUInt32();
-                gimmick.Unknown = reader.ReadUInt32();
+                gimmick.Param1 = reader.ReadInt32();
+                gimmick.Param2 = reader.ReadInt32();
+                gimmick.Param3 = reader.ReadInt32();
+                gimmick.Param4 = reader.ReadInt32();
+                gimmick.Param5 = reader.ReadInt32();
+                gimmick.Param6 = reader.ReadInt32();
+                gimmick.Param7 = reader.ReadInt32();
+                gimmick.Param8 = reader.ReadInt32();
+                gimmick.Param9 = reader.ReadInt32();
+                gimmick.Param10 = reader.ReadInt32();
+                gimmick.Param11 = reader.ReadInt32();
+                gimmick.Param12 = reader.ReadInt32();
+                gimmick.Unknown = reader.ReadInt32();
 
                 Gimmicks.Add(gimmick);
             }
@@ -688,17 +674,17 @@ namespace KirbyLib.Mapping
                     gEvent.Distance = reader.ReadByte();
                     gEvent.Delay = reader.ReadUInt16();
 
-                    if (XData.Version[0] == 5)
+                    if (IsDeluxe)
                         gEvent.DXUnknown1 = reader.ReadInt16();
 
                     gEvent.Unknown1 = reader.ReadInt16();
 
-                    if (XData.Version[0] == 5)
+                    if (IsDeluxe)
                         gEvent.DXUnknown2 = reader.ReadInt16();
 
                     gEvent.Time = reader.ReadUInt16();
 
-                    if (XData.Version[0] == 5)
+                    if (IsDeluxe)
                         gEvent.DXUnknown3 = reader.ReadInt16();
 
                     gEvent.IsEnd = reader.ReadByte() != 0;
@@ -731,7 +717,14 @@ namespace KirbyLib.Mapping
             for (int i = 0; i < itemCount; i++)
             {
                 Item item = new Item();
-                item.Kind = reader.ReadUInt32();
+                uint kind = reader.ReadUInt32();
+                if (!IsDeluxe)
+                {
+                    if (kind >= 11)
+                        kind += 2;
+                }
+
+                item.Kind = (BinItemKind)kind;
                 item.Variation = reader.ReadUInt32();
                 item.Level = reader.ReadUInt32();
                 item.TerrainGroup = reader.ReadInt32();
@@ -768,8 +761,8 @@ namespace KirbyLib.Mapping
             for (int i = 0; i < Bosses.Count; i++)
             {
                 var boss = Bosses[i];
-                writer.Write(boss.Kind);
-                writer.Write(boss.SubKind);
+                writer.Write((uint)boss.Kind);
+                writer.Write((uint)boss.Variation);
                 writer.Write(boss.Level);
                 writer.Write(boss.TerrainGroup);
                 writer.Write(boss.HasSuperAbility ? 1 : 0);
@@ -783,7 +776,7 @@ namespace KirbyLib.Mapping
             for (int i = 0; i < CarryItems.Count; i++)
             {
                 var item = CarryItems[i];
-                writer.Write(item.Kind);
+                writer.Write((uint)item.Kind);
                 writer.Write(item.AppearGroup);
                 writer.Write(item.CanRespawn ? 1 : 0);
                 writer.Write(item.TerrainGroup);
@@ -910,18 +903,31 @@ namespace KirbyLib.Mapping
             for (int i = 0; i < Enemies.Count; i++)
             {
                 var enemy = Enemies[i];
-                writer.Write(enemy.Kind);
-                writer.Write(enemy.Variation);
+                uint kind = (uint)enemy.Kind;
+                uint variation = (uint)enemy.Variation;
+                if (!IsDeluxe)
+                {
+                    if (kind >= 109)
+                        kind -= 9;
+                    if (variation >= 420)
+                        variation -= 83;
+                }
+
+                writer.Write(kind);
+                writer.Write(variation);
                 writer.Write(enemy.Level);
-                writer.Write(enemy.Direction);
-                writer.Write(enemy.AnotherDimensionSize);
-                writer.Write(enemy.ExtraModeSize);
+                writer.Write((uint)enemy.Direction);
+                writer.Write((uint)enemy.AnotherDimensionSize);
+                writer.Write((uint)enemy.ExtraModeSize);
                 writer.Write(enemy.TerrainGroup);
-                writer.Write(enemy.HasSuperAbility ? 1 : 0);
+                if (IsDeluxe)
+                    writer.Write(enemy.HasSuperAbility ? 1 : 2);
+                else
+                    writer.Write(enemy.HasSuperAbility ? 1 : 0);
                 writer.Write(enemy.X);
                 writer.Write(enemy.Y);
 
-                if (XData.Version[0] == 5)
+                if (IsDeluxe)
                 {
                     writer.Write(enemy.DXUnk1);
                     writer.Write(enemy.DXUnk2);
@@ -1007,17 +1013,17 @@ namespace KirbyLib.Mapping
                     writer.Write(aEvent.Distance);
                     writer.Write(aEvent.Delay);
 
-                    if (XData.Version[0] == 5)
+                    if (IsDeluxe)
                         writer.Write(aEvent.DXUnknown1);
 
                     writer.Write(aEvent.Unknown1);
 
-                    if (XData.Version[0] == 5)
+                    if (IsDeluxe)
                         writer.Write(aEvent.DXUnknown2);
 
                     writer.Write(aEvent.Time);
 
-                    if (XData.Version[0] == 5)
+                    if (IsDeluxe)
                         writer.Write(aEvent.DXUnknown3);
 
                     writer.Write(aEvent.IsEnd ? (byte)1 : (byte)0);
@@ -1046,7 +1052,14 @@ namespace KirbyLib.Mapping
             for (int i = 0; i < Items.Count; i++)
             {
                 var item = Items[i];
-                writer.Write(item.Kind);
+                uint kind = (uint)item.Kind;
+                if (!IsDeluxe)
+                {
+                    if (kind >= 13)
+                        kind -= 2;
+                }
+
+                writer.Write(kind);
                 writer.Write(item.Variation);
                 writer.Write(item.Level);
                 writer.Write(item.TerrainGroup);
