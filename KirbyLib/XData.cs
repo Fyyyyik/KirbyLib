@@ -40,11 +40,9 @@ namespace KirbyLib
             // In the actual data, this value is 0x3412 in little endian and 0x1234 in big endian
             ushort bom = reader.ReadUInt16();
             if (bom != 0x1234)
-                Endianness = Endianness == Endianness.Little
-                    ? Endianness.Big
-                    : Endianness.Little;
+                reader.Endianness = reader.Endianness.Flip();
 
-            reader.Endianness = Endianness;
+            Endianness = reader.Endianness;
 
             Version = reader.ReadBytes(2);
 

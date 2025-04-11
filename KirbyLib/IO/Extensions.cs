@@ -9,6 +9,14 @@ namespace KirbyLib.IO
 {
     public static class Extensions
     {
+        public static Endianness Flip(this Endianness e)
+        {
+            if (e == Endianness.Little)
+                return Endianness.Big;
+            else
+                return Endianness.Little;
+        }
+
         public static string ReadStringOffset(this BinaryReader reader, uint offset = 0)
         {
             uint addr = reader.ReadUInt32() + offset;
