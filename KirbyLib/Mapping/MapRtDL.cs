@@ -1,6 +1,7 @@
 ﻿using KirbyLib.IO;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Reflection.Emit;
@@ -200,10 +201,10 @@ namespace KirbyLib.Mapping
             public BinEnemySize ExtraModeSize;
             public int TerrainGroup;
             public bool HasSuperAbility;
-            public int DXUnk1;
-            public int DXUnk2;
             public GridPos X;
             public GridPos Y;
+            public bool IsNormalOnly;
+            public bool IsEXOnly;
         }
 
         public struct Gimmick
@@ -243,9 +244,9 @@ namespace KirbyLib.Mapping
             public GridPos Y1;
             public GridPos X2;
             public GridPos Y2;
-            public GridPos X3;
-            public GridPos Y3;
-            public uint Unknown;
+            public Color Color1;
+            public Color Color2;
+            public int Radius;
             public int TerrainGroup;
             public int Param1;
             public int Param2;
@@ -541,13 +542,28 @@ namespace KirbyLib.Mapping
             {
                 DecorObject obj = new DecorObject();
                 obj.Kind = (BinDecoObjectKind)reader.ReadUInt32();
-                obj.X1 = reader.ReadUInt32();
-                obj.Y1 = reader.ReadUInt32();
                 obj.X2 = reader.ReadUInt32();
+                obj.Y1 = reader.ReadUInt32();
+                obj.X1 = reader.ReadUInt32();
                 obj.Y2 = reader.ReadUInt32();
-                obj.X3 = reader.ReadUInt32();
-                obj.Y3 = reader.ReadUInt32();
-                obj.Unknown = reader.ReadUInt32();
+
+                uint color = reader.ReadUInt32();
+                obj.Color1 = Color.FromArgb(
+                    (int)(color & 0xFF),
+                    (int)((color & 0xFF000000) >> 24),
+                    (int)((color & 0xFF0000) >> 16),
+                    (int)((color & 0xFF00) >> 8)
+                );
+
+                color = reader.ReadUInt32();
+                obj.Color2 = Color.FromArgb(
+                    (int)(color & 0xFF),
+                    (int)((color & 0xFF000000) >> 24),
+                    (int)((color & 0xFF0000) >> 16),
+                    (int)((color & 0xFF00) >> 8)
+                );
+
+                obj.Radius = reader.ReadInt32();
                 obj.TerrainGroup = reader.ReadInt32();
                 obj.Param1 = reader.ReadInt32();
                 obj.Param2 = reader.ReadInt32();
@@ -591,8 +607,8 @@ namespace KirbyLib.Mapping
 
                 if (IsDeluxe)
                 {
-                    enemy.DXUnk1 = reader.ReadInt32();
-                    enemy.DXUnk2 = reader.ReadInt32();
+                    enemy.IsNormalOnly = reader.ReadUInt32() != 0;
+                    enemy.IsEXOnly = reader.ReadUInt32() != 0;
                 }
 
                 Enemies.Add(enemy);
@@ -880,13 +896,23 @@ namespace KirbyLib.Mapping
             {
                 var obj = DecorationObjects[i];
                 writer.Write((uint)obj.Kind);
-                writer.Write(obj.X1);
-                writer.Write(obj.Y1);
                 writer.Write(obj.X2);
+                writer.Write(obj.Y1);
+                writer.Write(obj.X1);
                 writer.Write(obj.Y2);
-                writer.Write(obj.X3);
-                writer.Write(obj.Y3);
-                writer.Write(obj.Unknown);
+                writer.Write((uint)
+                    (obj.Color1.R |
+                    (obj.Color1.G << 8) |
+                    (obj.Color1.B << 16) |
+                    (obj.Color1.A << 24))
+                );
+                writer.Write((uint)
+                    (obj.Color2.R |
+                    (obj.Color2.G << 8) |
+                    (obj.Color2.B << 16) |
+                    (obj.Color2.A << 24))
+                );
+                writer.Write(obj.Radius);
                 writer.Write(obj.TerrainGroup);
                 writer.Write(obj.Param1);
                 writer.Write(obj.Param2);
@@ -929,8 +955,8 @@ namespace KirbyLib.Mapping
 
                 if (IsDeluxe)
                 {
-                    writer.Write(enemy.DXUnk1);
-                    writer.Write(enemy.DXUnk2);
+                    writer.Write(enemy.IsNormalOnly ? 1 : 0);
+                    writer.Write(enemy.IsEXOnly ? 1 : 0);
                 }
             }
 

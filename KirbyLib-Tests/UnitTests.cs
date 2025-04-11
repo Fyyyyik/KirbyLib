@@ -410,8 +410,8 @@ namespace KirbyLib_Tests
             }
 
             /*
-            const string IN_PATH = @"D:\Game Dumps\Kirby's Return to Dream Land Deluxe\romfs\map\Step\MahoroaMode\Area1Pow1\Step01.bin";
-            const string OUT_PATH = "Area1Pow1_Step01.bin";
+            const string IN_PATH = @"D:\Game Dumps\Kirby's Return to Dream Land Deluxe\romfs\map\Step\Level1\Stage1\Step02.bin";
+            const string OUT_PATH = "DX_L1S1S2.bin";
 
             MapRtDL map;
             using (FileStream stream = new FileStream(IN_PATH, FileMode.Open, FileAccess.Read))
@@ -421,6 +421,10 @@ namespace KirbyLib_Tests
             using (FileStream stream = new FileStream(OUT_PATH, FileMode.Create, FileAccess.Write))
             using (EndianBinaryWriter writer = new EndianBinaryWriter(stream))
                 map.Write(writer);
+
+            using (FileStream stream = new FileStream(IN_PATH, FileMode.Open, FileAccess.Read))
+            using (EndianBinaryReader reader = new EndianBinaryReader(stream))
+                map = new MapRtDL(reader);
             */
         }
 
@@ -703,6 +707,7 @@ namespace KirbyLib_Tests
                 }
             }
             */
+            /*
             if (map.Enemies.Count > 0)
             {
                 for (int i = 0; i < map.Enemies.Count; i++)
@@ -718,37 +723,35 @@ namespace KirbyLib_Tests
                     Console.WriteLine($"\t\t- Has Super Ability: {map.Enemies[i].HasSuperAbility}");
                     Console.WriteLine($"\t\t- X: {map.Enemies[i].X}");
                     Console.WriteLine($"\t\t- Y: {map.Enemies[i].Y}");
-                    Console.WriteLine($"\t\t- DX Unk 1: {map.Enemies[i].DXUnk1}");
-                    Console.WriteLine($"\t\t- DX Unk 2: {map.Enemies[i].DXUnk2}");
-                }
-            }
-            /*
-            if (map.DecorationObjects.Length > 0)
-            {
-                Console.WriteLine($"{maps[i].Remove(0, PATH.Length)} contains {map.DecorationObjects.Length} decor objects");
-                for (int l = 0; l < map.DecorationObjects.Length; l++)
-                {
-                    Console.WriteLine($"\t- {l}:");
-                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Kind);
-                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].X1);
-                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Y1);
-                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].X2);
-                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Y2);
-                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].X3);
-                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Y3);
-                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Param7);
-                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].TerrainGroup);
-                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Param9);
-                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Param10);
-                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Param11);
-                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Param12);
-                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Param13);
-                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Param14);
-                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Param15);
-                    Console.WriteLine($"\t\t- " + map.DecorationObjects[l].Param16);
+                    Console.WriteLine($"\t\t- Is Normal Only: {map.Enemies[i].IsNormalOnly}");
+                    Console.WriteLine($"\t\t- Is EX Only: {map.Enemies[i].IsEXOnly}");
                 }
             }
             */
+            if (map.DecorationObjects.Count > 0)
+            {
+                for (int l = 0; l < map.DecorationObjects.Count; l++)
+                {
+                    Console.WriteLine($"\t- Decor Object {l}:");
+                    Console.WriteLine($"\t\t- Kind: " + map.DecorationObjects[l].Kind);
+                    Console.WriteLine($"\t\t- X1: " + map.DecorationObjects[l].X1);
+                    Console.WriteLine($"\t\t- Y1: " + map.DecorationObjects[l].Y1);
+                    Console.WriteLine($"\t\t- X2: " + map.DecorationObjects[l].X2);
+                    Console.WriteLine($"\t\t- Y2: " + map.DecorationObjects[l].Y2);
+                    Console.WriteLine($"\t\t- Color 1: " + map.DecorationObjects[l].Color1);
+                    Console.WriteLine($"\t\t- Color 2: " + map.DecorationObjects[l].Color2);
+                    Console.WriteLine($"\t\t- Radius: " + map.DecorationObjects[l].Radius);
+                    Console.WriteLine($"\t\t- Terrain Group: " + map.DecorationObjects[l].TerrainGroup);
+                    Console.WriteLine($"\t\t- Param 1: " + map.DecorationObjects[l].Param1);
+                    Console.WriteLine($"\t\t- Param 2: " + map.DecorationObjects[l].Param2);
+                    Console.WriteLine($"\t\t- Param 3: " + map.DecorationObjects[l].Param3);
+                    Console.WriteLine($"\t\t- Param 4: " + map.DecorationObjects[l].Param4);
+                    Console.WriteLine($"\t\t- Param 5: " + map.DecorationObjects[l].Param5);
+                    Console.WriteLine($"\t\t- Param 6: " + map.DecorationObjects[l].Param6);
+                    Console.WriteLine($"\t\t- Param 7: " + map.DecorationObjects[l].Param7);
+                    Console.WriteLine($"\t\t- Param 8: " + map.DecorationObjects[l].Param8);
+                }
+            }
             /*
             if (map.Type != MapRtDL.MapType.Normal)
             {
