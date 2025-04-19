@@ -45,6 +45,16 @@ namespace KirbyLib.Mapping
 
         public override int Height => Collision.GetLength(1);
 
+        public bool IsFighters2
+        {
+            get => XData.Version[0] == 4;
+            set
+            {
+                XData.Version[0] = (byte)(value ? 4 : 2);
+                XData.Version[1] = 0;
+            }
+        }
+
         /// <summary>
         /// Fixed collision tiles.
         /// </summary>
@@ -165,7 +175,7 @@ namespace KirbyLib.Mapping
 
             reader.BaseStream.Position = generalSection;
             BGM = reader.ReadStringOffset();
-            if (XData.Version[0] > 2)
+            if (IsFighters2)
                 BGMSecret = reader.ReadStringOffset();
 
             reader.BaseStream.Position = gimmickSection + 4;
@@ -253,7 +263,7 @@ namespace KirbyLib.Mapping
             strings.Add(writer.BaseStream.Position, BGM);
             writer.Write(-1);
 
-            if (XData.Version[0] > 2)
+            if (IsFighters2)
             {
                 strings.Add(writer.BaseStream.Position, BGMSecret);
                 writer.Write(-1);
@@ -275,6 +285,7 @@ namespace KirbyLib.Mapping
             writer.WritePadding(0x10);
 
             writer.WritePositionAt(gimmickSection);
+            writer.Write(Gimmicks.Count);
             for (int i = 0; i < Gimmicks.Count; i++)
             {
                 var gimmick = Gimmicks[i];

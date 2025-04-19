@@ -641,6 +641,26 @@ namespace KirbyLib_Tests
         }
 
         [TestMethod]
+        public void MapTestKF2()
+        {
+            const string IN_PATH = @"D:\Game Dumps\Kirby Fighters 2\romfs\map\Fight\Game\Main\DededeRing.bin";
+            const string OUT_PATH = "KF2_DededeRing.bin";
+
+            MapFighters map;
+            using (FileStream stream = new FileStream(IN_PATH, FileMode.Open, FileAccess.Read))
+            using (EndianBinaryReader reader = new EndianBinaryReader(stream))
+                map = new MapFighters(reader);
+
+            using (FileStream stream = new FileStream(OUT_PATH, FileMode.Create, FileAccess.Write))
+            using (EndianBinaryWriter writer = new EndianBinaryWriter(stream))
+                map.Write(writer);
+
+            using (FileStream stream = new FileStream(OUT_PATH, FileMode.Open, FileAccess.Read))
+            using (EndianBinaryReader reader = new EndianBinaryReader(stream))
+                map = new MapFighters(reader);
+        }
+
+        [TestMethod]
         public void MapConvertTest()
         {
             const string IN_PATH = "Step01.dat";
