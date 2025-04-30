@@ -76,8 +76,9 @@ namespace KirbyLib.Mapping
     public enum LandGridProperty : byte
     {
         None = 0x0,
+        Unknown_0x1 = 0x1,
         Ladder = 0x2,
-        Boundary = 0x4,
+        InvisibleLand = 0x4,
         Water = 0x8,
         Spike = 0x10,
         Ice = 0x20,

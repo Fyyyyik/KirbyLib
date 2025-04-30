@@ -17,6 +17,33 @@ namespace KirbyLib.Mapping
         #region Structs
 
         /// <summary>
+        /// Representation of a tile within a moving collision group.
+        /// </summary>
+        public struct MoveGridTile
+        {
+            /// <summary>
+            /// The collision shape the tile uses.
+            /// </summary>
+            public LandGridShapeKind Shape;
+            /// <summary>
+            /// Enables special attributes for the tile.
+            /// </summary>
+            public MoveGridProperty PropertyFlags;
+
+            public MoveGridTile()
+            {
+                Shape = LandGridShapeKind.None;
+                PropertyFlags = MoveGridProperty.None;
+            }
+
+            public MoveGridTile(LandGridShapeKind shape, MoveGridProperty prop)
+            {
+                Shape = shape;
+                PropertyFlags = prop;
+            }
+        }
+
+        /// <summary>
         /// Represents information about a moving collision group.<br/>
         /// Visuals are defined by setting the Group field of decoration tiles to the corresponding MoveGrid index.
         /// </summary>
@@ -44,10 +71,19 @@ namespace KirbyLib.Mapping
             /// The vertical position the terrain is located.
             /// </summary>
             public uint Y;
-            public CollisionTile[,] Collision;
+            public MoveGridTile[,] Collision;
         }
 
         #endregion
+
+        [Flags]
+        public enum MoveGridProperty : byte
+        {
+            None = 0x0,
+            Unknown_0x1 = 0x1,
+            Lava = 0x2,
+            Spike = 0x4
+        }
 
         public const uint MAGIC_NUMBER = 0x0C;
 
@@ -243,7 +279,7 @@ namespace KirbyLib.Mapping
 
                     ushort width = reader.ReadUInt16();
                     ushort height = reader.ReadUInt16();
-                    grid.Collision = new CollisionTile[width, height];
+                    grid.Collision = new MoveGridTile[width, height];
 
                     uint tileCount = reader.ReadUInt32();
 
@@ -261,9 +297,9 @@ namespace KirbyLib.Mapping
                         byte x = reader.ReadByte();
                         byte y = reader.ReadByte();
 
-                        CollisionTile tile = new CollisionTile();
+                        MoveGridTile tile = new MoveGridTile();
                         tile.Shape = (LandGridShapeKind)reader.ReadByte();
-                        tile.Material = reader.ReadByte();
+                        tile.PropertyFlags = (MoveGridProperty)reader.ReadByte();
 
                         grid.Collision[x, y] = tile;
                     }
@@ -408,7 +444,7 @@ namespace KirbyLib.Mapping
                                 writer.Write((byte)x);
                                 writer.Write((byte)y);
                                 writer.Write((byte)tile.Shape);
-                                writer.Write(tile.Material);
+                                writer.Write((byte)tile.PropertyFlags);
                             }
                         }
                     }
