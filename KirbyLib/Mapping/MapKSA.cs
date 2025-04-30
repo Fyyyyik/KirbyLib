@@ -28,18 +28,18 @@ namespace KirbyLib.Mapping
             /// <summary>
             /// Enables special attributes for the tile.
             /// </summary>
-            public MoveGridProperty PropertyFlags;
+            public MoveGridProperty Property;
 
             public MoveGridTile()
             {
                 Shape = LandGridShapeKind.None;
-                PropertyFlags = MoveGridProperty.None;
+                Property = MoveGridProperty.None;
             }
 
             public MoveGridTile(LandGridShapeKind shape, MoveGridProperty prop)
             {
                 Shape = shape;
-                PropertyFlags = prop;
+                Property = prop;
             }
         }
 
@@ -75,15 +75,6 @@ namespace KirbyLib.Mapping
         }
 
         #endregion
-
-        [Flags]
-        public enum MoveGridProperty : byte
-        {
-            None = 0x0,
-            Unknown_0x1 = 0x1,
-            Lava = 0x2,
-            Spike = 0x4
-        }
 
         public const uint MAGIC_NUMBER = 0x0C;
 
@@ -256,7 +247,7 @@ namespace KirbyLib.Mapping
 
             reader.BaseStream.Position = collisionSection;
             reader.BaseStream.Position = reader.ReadUInt32();
-            Collision = ReadCollisionShuffled(reader);
+            Collision = ReadCollision(reader);
 
             reader.BaseStream.Position = movingTerrainSection;
             uint validTerrain = reader.ReadUInt32();
@@ -299,7 +290,7 @@ namespace KirbyLib.Mapping
 
                         MoveGridTile tile = new MoveGridTile();
                         tile.Shape = (LandGridShapeKind)reader.ReadByte();
-                        tile.PropertyFlags = (MoveGridProperty)reader.ReadByte();
+                        tile.Property = (MoveGridProperty)reader.ReadByte();
 
                         grid.Collision[x, y] = tile;
                     }
@@ -389,7 +380,7 @@ namespace KirbyLib.Mapping
 
             writer.WritePositionAt(headerStart + 0xC);
             writer.Write((uint)writer.BaseStream.Position + 0x4);
-            WriteCollisionShuffled(writer, Collision);
+            WriteCollision(writer, Collision);
 
             long movingTerrainSection = writer.BaseStream.Position;
             writer.WritePositionAt(headerStart + 0x10);
@@ -444,7 +435,7 @@ namespace KirbyLib.Mapping
                                 writer.Write((byte)x);
                                 writer.Write((byte)y);
                                 writer.Write((byte)tile.Shape);
-                                writer.Write((byte)tile.PropertyFlags);
+                                writer.Write((byte)tile.Property);
                             }
                         }
                     }

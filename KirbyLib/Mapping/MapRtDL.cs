@@ -463,7 +463,7 @@ namespace KirbyLib.Mapping
                 reader.BaseStream.Position = collisionSection + 4 + (i * 4);
                 reader.BaseStream.Position = reader.ReadUInt32();
 
-                Collision.Add(ReadCollision(reader));
+                Collision.Add(ReadCollisionOld(reader));
             }
 
             reader.BaseStream.Position = movingTerrainSection;
@@ -809,7 +809,7 @@ namespace KirbyLib.Mapping
             for (int i = 0; i < Collision.Count; i++)
             {
                 writer.WritePositionAt(collisionSection + 4 + (i * 4));
-                WriteCollision(writer, Collision[i]);
+                WriteCollisionOld(writer, Collision[i]);
             }
 
             uint movingTerrainSection = (uint)writer.BaseStream.Position;

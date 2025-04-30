@@ -17,7 +17,15 @@ namespace KirbyLib.Mapping
         /// </summary>
         public LandGridProperty PropertyFlags;
         /// <summary>
-        /// Tile material. Typically defines effects when walking and landing.
+        /// Tile material. Typically defines effects when walking and landing.<br/>
+        /// <b>Used in:</b>
+        /// <list type="bullet">
+        ///     <item>Kirby's Return to Dream Land</item>
+        ///     <item>Kirby Triple Deluxe</item>
+        ///     <item>Kirby Fighters</item>
+        ///     <item>Kirby Fighters Deluxe</item>
+        ///     <item>Kirby Fighters 2</item>
+        /// </list>
         /// </summary>
         public byte Material;
         /// <summary>
@@ -31,6 +39,13 @@ namespace KirbyLib.Mapping
             PropertyFlags = LandGridProperty.None;
             Material = 0;
             ConveyorSpeed = 0;
+        }
+
+        public CollisionTile(LandGridShapeKind shape, LandGridProperty prop, sbyte conveyorSpeed)
+        {
+            Shape = shape;
+            PropertyFlags = prop;
+            ConveyorSpeed = conveyorSpeed;
         }
 
         public CollisionTile(LandGridShapeKind shape, LandGridProperty prop, byte material, sbyte conveyorSpeed)
@@ -73,7 +88,7 @@ namespace KirbyLib.Mapping
     /// Bitflags that determine special properties for a tile.
     /// </summary>
     [Flags]
-    public enum LandGridProperty : byte
+    public enum LandGridProperty : ushort
     {
         None = 0x0,
         Unknown_0x1 = 0x1,
@@ -82,7 +97,20 @@ namespace KirbyLib.Mapping
         Water = 0x8,
         Spike = 0x10,
         Ice = 0x20,
-        Lava = 0x40
+        Lava = 0x40,
+        ItemThroughLand = 0x100,
+        NoWallCling = 0x400
+    }
+
+    /// <summary>
+    /// Enum that determines special properties for a tile within a moving land group.
+    /// </summary>
+    public enum MoveGridProperty : byte
+    {
+        None = 0,
+        Spike = 4,
+        Ice,
+        Lava
     }
 
     /// <summary>

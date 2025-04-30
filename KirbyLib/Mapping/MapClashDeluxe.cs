@@ -139,7 +139,7 @@ namespace KirbyLib.Mapping
 
             reader.BaseStream.Position = collisionSection;
             reader.BaseStream.Position = reader.ReadUInt32();
-            Collision = ReadCollisionShuffled(reader);
+            Collision = ReadCollision(reader);
 
             reader.BaseStream.Position = decorSection;
             Background = reader.ReadUInt32();
@@ -224,7 +224,7 @@ namespace KirbyLib.Mapping
 
             writer.WritePositionAt(headerStart + 0x8);
             writer.Write((uint)writer.BaseStream.Position + 4);
-            WriteCollisionShuffled(writer, Collision);
+            WriteCollision(writer, Collision);
             writer.WritePadding(0x10);
 
             long decorSection = writer.BaseStream.Position;

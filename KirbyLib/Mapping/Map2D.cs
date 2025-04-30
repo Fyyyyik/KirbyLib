@@ -38,7 +38,7 @@ namespace KirbyLib.Mapping
         public abstract void Read(EndianBinaryReader reader);
         public abstract void Write(EndianBinaryWriter writer);
 
-        protected CollisionTile[,] ReadCollision(EndianBinaryReader reader)
+        protected CollisionTile[,] ReadCollisionOld(EndianBinaryReader reader)
         {
             uint width = reader.ReadUInt32();
             uint height = reader.ReadUInt32();
@@ -58,7 +58,7 @@ namespace KirbyLib.Mapping
             return collision;
         }
 
-        protected CollisionTile[,] ReadCollisionShuffled(EndianBinaryReader reader)
+        protected CollisionTile[,] ReadCollision(EndianBinaryReader reader)
         {
             uint width = reader.ReadUInt32();
             uint height = reader.ReadUInt32();
@@ -67,18 +67,17 @@ namespace KirbyLib.Mapping
             {
                 for (int x = 0; x < width; x++)
                 {
-                    LandGridProperty prop = (LandGridProperty)reader.ReadByte();
-                    byte material = reader.ReadByte();
+                    LandGridProperty prop = (LandGridProperty)reader.ReadUInt16();
                     LandGridShapeKind shape = (LandGridShapeKind)reader.ReadByte();
                     sbyte conveyor = reader.ReadSByte();
 
-                    collision[x, y] = new CollisionTile(shape, prop, material, conveyor);
+                    collision[x, y] = new CollisionTile(shape, prop, conveyor);
                 }
             }
             return collision;
         }
 
-        protected void WriteCollision(EndianBinaryWriter writer, CollisionTile[,] collision)
+        protected void WriteCollisionOld(EndianBinaryWriter writer, CollisionTile[,] collision)
         {
             int width = collision.GetLength(0);
             int height = collision.GetLength(1);
@@ -97,7 +96,7 @@ namespace KirbyLib.Mapping
             }
         }
 
-        protected void WriteCollisionShuffled(EndianBinaryWriter writer, CollisionTile[,] collision)
+        protected void WriteCollision(EndianBinaryWriter writer, CollisionTile[,] collision)
         {
             int width = collision.GetLength(0);
             int height = collision.GetLength(1);
@@ -108,8 +107,7 @@ namespace KirbyLib.Mapping
                 for (int x = 0; x < width; x++)
                 {
                     var tile = collision[x, y];
-                    writer.Write((byte)tile.PropertyFlags);
-                    writer.Write(tile.Material);
+                    writer.Write((ushort)tile.PropertyFlags);
                     writer.Write((byte)tile.Shape);
                     writer.Write(tile.ConveyorSpeed);
                 }
