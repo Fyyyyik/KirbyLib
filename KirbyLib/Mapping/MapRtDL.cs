@@ -50,7 +50,7 @@ namespace KirbyLib.Mapping
             /// The vertical position the terrain is located.
             /// </summary>
             public ushort Y;
-            public CollisionTile[,] Collision;
+            public MoveGridTile[,] Collision;
 
             /// <summary>
             /// The action tied to this MoveGrid.<br/>Defines the movement it will take.
@@ -489,7 +489,7 @@ namespace KirbyLib.Mapping
 
                     ushort width = reader.ReadUInt16();
                     ushort height = reader.ReadUInt16();
-                    grid.Collision = new CollisionTile[width, height];
+                    grid.Collision = new MoveGridTile[width, height];
 
                     uint tileCount = reader.ReadUInt32();
 
@@ -507,11 +507,10 @@ namespace KirbyLib.Mapping
                         byte x = reader.ReadByte();
                         byte y = reader.ReadByte();
 
-                        CollisionTile tile = new CollisionTile();
-                        tile.Shape = (LandGridShapeKind)reader.ReadByte();
-                        tile.Material = reader.ReadByte();
-
-                        grid.Collision[x, y] = tile;
+                        grid.Collision[x, y] = new MoveGridTile(
+                            (LandGridShapeKind)reader.ReadByte(),
+                            (MoveGridProperty)reader.ReadByte()
+                        );
                     }
                 }
 
@@ -865,7 +864,7 @@ namespace KirbyLib.Mapping
                                 writer.Write((byte)x);
                                 writer.Write((byte)y);
                                 writer.Write((byte)tile.Shape);
-                                writer.Write(tile.Material);
+                                writer.Write((byte)tile.Property);
                             }
                         }
                     }

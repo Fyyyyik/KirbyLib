@@ -15,34 +15,6 @@ namespace KirbyLib.Mapping
     public class MapKSA : Map2D
     {
         #region Structs
-
-        /// <summary>
-        /// Representation of a tile within a moving collision group.
-        /// </summary>
-        public struct MoveGridTile
-        {
-            /// <summary>
-            /// The collision shape the tile uses.
-            /// </summary>
-            public LandGridShapeKind Shape;
-            /// <summary>
-            /// Enables special attributes for the tile.
-            /// </summary>
-            public MoveGridProperty Property;
-
-            public MoveGridTile()
-            {
-                Shape = LandGridShapeKind.None;
-                Property = MoveGridProperty.None;
-            }
-
-            public MoveGridTile(LandGridShapeKind shape, MoveGridProperty prop)
-            {
-                Shape = shape;
-                Property = prop;
-            }
-        }
-
         /// <summary>
         /// Represents information about a moving collision group.<br/>
         /// Visuals are defined by setting the Group field of decoration tiles to the corresponding MoveGrid index.
@@ -288,11 +260,10 @@ namespace KirbyLib.Mapping
                         byte x = reader.ReadByte();
                         byte y = reader.ReadByte();
 
-                        MoveGridTile tile = new MoveGridTile();
-                        tile.Shape = (LandGridShapeKind)reader.ReadByte();
-                        tile.Property = (MoveGridProperty)reader.ReadByte();
-
-                        grid.Collision[x, y] = tile;
+                        grid.Collision[x, y] = new MoveGridTile(
+                            (LandGridShapeKind)reader.ReadByte(),
+                            (MoveGridProperty)reader.ReadByte()
+                        );
                     }
                 }
 

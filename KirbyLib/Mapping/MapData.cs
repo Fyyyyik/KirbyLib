@@ -57,6 +57,33 @@ namespace KirbyLib.Mapping
         }
     }
 
+    /// <summary>
+    /// Representation of a tile within a moving collision group.
+    /// </summary>
+    public struct MoveGridTile
+    {
+        /// <summary>
+        /// The collision shape the tile uses.
+        /// </summary>
+        public LandGridShapeKind Shape;
+        /// <summary>
+        /// Enables special attributes for the tile.
+        /// </summary>
+        public MoveGridProperty Property;
+
+        public MoveGridTile()
+        {
+            Shape = LandGridShapeKind.None;
+            Property = MoveGridProperty.None;
+        }
+
+        public MoveGridTile(LandGridShapeKind shape, MoveGridProperty prop)
+        {
+            Shape = shape;
+            Property = prop;
+        }
+    }
+
     public struct DecorationTile
     {
         /// <summary>
