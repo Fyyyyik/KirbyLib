@@ -58,6 +58,8 @@ namespace KirbyLib
                 reader.BaseStream.Position -= 0xC;
 
                 info.Data = reader.ReadBytes(fileLength);
+
+                Files.Add(info);
             }
         }
 
