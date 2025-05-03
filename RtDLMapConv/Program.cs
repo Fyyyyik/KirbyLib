@@ -17,19 +17,8 @@ internal class Program
             using (EndianBinaryReader reader = new EndianBinaryReader(stream))
                 map = new MapRtDL(reader);
 
-            string ext;
-            if (map.XData.Version[0] == 2)
-            {
-                map.XData.Version = new byte[] { 5, 0 };
-                map.XData.Endianness = Endianness.Little;
-                ext = "bin";
-            }
-            else
-            {
-                map.XData.Version = new byte[] { 2, 0 };
-                map.XData.Endianness = Endianness.Big;
-                ext = "dat";
-            }
+            map.IsDeluxe = !map.IsDeluxe;
+            string ext = map.IsDeluxe ? "bin" : "dat";
 
             outpath += "." + ext;
 

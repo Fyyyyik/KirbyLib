@@ -271,8 +271,7 @@ namespace KirbyLib.Mapping
             get => XData.Version[0] == 5;
             set
             {
-                XData.Version[0] = value ? (byte)5 : (byte)2; //what???????????????????
-                XData.Version[1] = 0;
+                XData.Version = new byte[] { (byte)(value ? 5 : 2), 0 }; //still no idea why c# needs this explicit cast
                 XData.Endianness = value ? Endianness.Little : Endianness.Big;
             }
         }
