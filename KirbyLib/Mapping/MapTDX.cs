@@ -128,7 +128,7 @@ namespace KirbyLib.Mapping
         /// </summary>
         public string BGM;
         public Vector3 Unknown1;
-        public int Unknown2;
+        public ScreenSplitKind ScreenSplitKind;
         public int Unknown3;
         public int Unknown4;
         public int Unknown5;
@@ -261,7 +261,7 @@ namespace KirbyLib.Mapping
             reader.BaseStream.Position = generalSection;
             BGM = reader.ReadStringOffset();
             Unknown1 = reader.ReadVector3();
-            Unknown2 = reader.ReadInt32();
+            ScreenSplitKind = (ScreenSplitKind)reader.ReadInt32();
             Unknown3 = reader.ReadInt32();
             Unknown4 = reader.ReadInt32();
             Unknown5 = reader.ReadInt32();
@@ -435,7 +435,7 @@ namespace KirbyLib.Mapping
             strings.Add(writer.BaseStream.Position, BGM);
             writer.Write(-1);
             writer.Write(Unknown1);
-            writer.Write(Unknown2);
+            writer.Write((int)ScreenSplitKind);
             writer.Write(Unknown3);
             writer.Write(Unknown4);
             writer.Write(Unknown5);
