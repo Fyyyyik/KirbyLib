@@ -447,7 +447,7 @@ namespace KirbyLib_Tests
 
                     Console.WriteLine($"\t- BGM:   {map.BGM}");
                     Console.WriteLine($"\t- Unk1:  {map.Unknown1}");
-                    Console.WriteLine($"\t- Unk2:  {map.Unknown2}");
+                    Console.WriteLine($"\t- ScreenSplitKind:  {map.ScreenSplitKind}");
                     Console.WriteLine($"\t- Unk3:  {map.Unknown3}");
                     Console.WriteLine($"\t- Unk4:  {map.Unknown4}");
                     Console.WriteLine($"\t- Unk5:  {map.Unknown5}");
