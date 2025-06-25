@@ -475,32 +475,52 @@ namespace KirbyLib_Tests
                         Console.WriteLine($"\t\t- Terrain Group: {enemy.TerrainGroup}");
                     }
                     */
-            /*
-            for (int j = 0; j < map.CarryItems.Length; j++)
-            {
-                var item = map.CarryItems[j];
-                Console.WriteLine($"\t- Carry Item {j}:");
-                Console.WriteLine($"\t\t- Kind: {item.Kind}");
-                Console.WriteLine($"\t\t- Variation: {item.Variation}");
-                Console.WriteLine($"\t\t- Can Respawn: {item.CanRespawn}");
-                Console.WriteLine($"\t\t- X: {item.X}");
-                Console.WriteLine($"\t\t- Y: {item.Y}");
-            }
+                    /*
+                    for (int j = 0; j < map.CarryItems.Length; j++)
+                    {
+                        var item = map.CarryItems[j];
+                        Console.WriteLine($"\t- Carry Item {j}:");
+                        Console.WriteLine($"\t\t- Kind: {item.Kind}");
+                        Console.WriteLine($"\t\t- Variation: {item.Variation}");
+                        Console.WriteLine($"\t\t- Can Respawn: {item.CanRespawn}");
+                        Console.WriteLine($"\t\t- X: {item.X}");
+                        Console.WriteLine($"\t\t- Y: {item.Y}");
+                    }
 
-            for (int j = 0; j < map.Items.Length; j++)
-            {
-                var item = map.Items[j];
-                Console.WriteLine($"\t- Item {j}:");
-                Console.WriteLine($"\t\t- Kind: {item.Kind}");
-                Console.WriteLine($"\t\t- Variation: {item.Variation}");
-                Console.WriteLine($"\t\t- SubKind: {item.SubKind}");
-                Console.WriteLine($"\t\t- X: {item.X}");
-                Console.WriteLine($"\t\t- Y: {item.Y}");
-                Console.WriteLine($"\t\t- HideModeKind: {item.HideModeKind}");
-            }
-            */
+                    for (int j = 0; j < map.Items.Length; j++)
+                    {
+                        var item = map.Items[j];
+                        Console.WriteLine($"\t- Item {j}:");
+                        Console.WriteLine($"\t\t- Kind: {item.Kind}");
+                        Console.WriteLine($"\t\t- Variation: {item.Variation}");
+                        Console.WriteLine($"\t\t- SubKind: {item.SubKind}");
+                        Console.WriteLine($"\t\t- X: {item.X}");
+                        Console.WriteLine($"\t\t- Y: {item.Y}");
+                        Console.WriteLine($"\t\t- HideModeKind: {item.HideModeKind}");
+                    }
+                    */
                 }
-    }
+            }
+        }
+
+        [TestMethod]
+        public void MapTestTDXIO()
+        {
+            const string IN_PATH = @"D:\Game Dumps\Kirby Triple Deluxe\romfs\map\Step\Level1\Stage1\Step02.dat";
+            const string OUT_PATH = "TDX_L1S1S02.bin";
+
+            MapTDX map;
+            using (FileStream stream = new FileStream(IN_PATH, FileMode.Open, FileAccess.Read))
+            using (EndianBinaryReader reader = new EndianBinaryReader(stream))
+                map = new MapTDX(reader);
+
+            using (FileStream stream = new FileStream(OUT_PATH, FileMode.Create, FileAccess.Write))
+            using (EndianBinaryWriter writer = new EndianBinaryWriter(stream))
+                map.Write(writer);
+
+            using (FileStream stream = new FileStream(OUT_PATH, FileMode.Open, FileAccess.Read))
+            using (EndianBinaryReader reader = new EndianBinaryReader(stream))
+                map = new MapTDX(reader);
         }
 
         [TestMethod]

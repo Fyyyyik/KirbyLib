@@ -396,7 +396,7 @@ namespace KirbyLib.Mapping
                     Enemies[i].Name,
                     Enemies[i].Variation
                 };
-                if (!enemyStrings.Contains(strs))
+                if (!enemyStrings.Contains(strs, new ArrayEqualityComparer<string>()))
                     enemyStrings.Add(strs);
             }
 
@@ -462,6 +462,7 @@ namespace KirbyLib.Mapping
             writer.WritePadding(0x10);
 
             writer.WritePositionAt(gimmickSection);
+            writer.Write(Gimmicks.Count);
             for (int i = 0; i < Gimmicks.Count; i++)
             {
                 var gimmick = Gimmicks[i];
