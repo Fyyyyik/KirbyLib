@@ -307,7 +307,7 @@ namespace KirbyLib.Mapping
             BGCameraMoveRate = reader.ReadVector3();
             BlankSpaceGridNum = reader.ReadUInt32();
             SystemLayout = (BinSystemLayout)reader.ReadUInt32();
-            UseAltBGM = reader.ReadUInt32();
+            UseAltBGM = reader.ReadUInt32() != 0;
 
             reader.BaseStream.Position = gimmickSection;
             Gimmicks = ReadYamlSection(reader);
@@ -459,7 +459,7 @@ namespace KirbyLib.Mapping
             writer.Write(BGCameraMoveRate);
             writer.Write(BlankSpaceGridNum);
             writer.Write((uint)SystemLayout);
-            writer.Write(UseAltBGM);
+            writer.Write(UseAltBGM ? 1 : 0);
             writer.WritePadding(0x10);
 
             writer.WritePositionAt(headerStart + 0x1C);
