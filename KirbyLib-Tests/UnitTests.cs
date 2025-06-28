@@ -534,44 +534,27 @@ namespace KirbyLib_Tests
                 using (EndianBinaryReader reader = new EndianBinaryReader(stream))
                 {
                     MapKPR map = new MapKPR(reader);
-
+                    /*
                     Console.WriteLine($"\t- Width: {map.Width}");
                     Console.WriteLine($"\t- Height: {map.Height}");
-                    Console.WriteLine($"\t- Background: {map.Background}");
-                    Console.WriteLine($"\t- Decor Set: {map.DecorSet}");
-                    Console.WriteLine($"\t- BGM: {map.BGM}");
-                    Console.WriteLine($"\t- Light Set: {map.LightSet}");
-                    Console.WriteLine($"\t- Screen Split Kind:  {map.ScreenSplitKind}");
-                    Console.WriteLine($"\t- Unknown 2:  {map.Unknown2}");
-                    Console.WriteLine($"\t- Unknown 3:  {map.Unknown3}");
-                    Console.WriteLine($"\t- Unknown 4:  {map.Unknown4}");
-                    Console.WriteLine($"\t- Unknown 5:  {map.Unknown5}");
-                    Console.WriteLine($"\t- Unknown 6:  {map.Unknown6}");
-                    Console.WriteLine($"\t- Unknown 7:  {map.Unknown7}");
-                    Console.WriteLine($"\t- Unknown 8:  {map.Unknown8}");
-                    Console.WriteLine($"\t- Unknown 9:  {map.Unknown9}");
-                    Console.WriteLine($"\t- Unknown 10: {map.Unknown10}");
-                    Console.WriteLine($"\t- Unknown 11: {map.Unknown11}");
-                    Console.WriteLine($"\t- Unknown 12: {map.Unknown12}");
-                    Console.WriteLine($"\t- Unknown 13: {map.Unknown13}");
-                    Console.WriteLine($"\t- Unknown 14: {map.Unknown14}");
-                    
-                    /*
-                    if (map.Unknown2 == 0)
-                        Console.WriteLine("\tUnk6 is 0!");
-                    else
-                    {
-                        if (map.Width % (map.Unknown2 + 1) == 0)
-                            Console.WriteLine($"\tWidth ({map.Width}) is divisible by Unk2 + 1 ({map.Unknown2})!");
-                        else
-                            Console.WriteLine($"\tWidth ({map.Width}) is NOT divisible by Unk2 + 1 ({map.Unknown2})!");
-
-                        if (map.Height % (map.Unknown2 + 1) == 0)
-                            Console.WriteLine($"\tHeight ({map.Height}) is divisible by Unk2 + 1 ({map.Unknown2})!");
-                        else
-                            Console.WriteLine($"\tHeight ({map.Height}) is NOT divisible by Unk2 + 1 ({map.Unknown2})!");
-                    }
                     */
+                    Console.WriteLine($"\t- Background: {map.Background}");
+                    Console.WriteLine($"\t- DecorSet: {map.DecorSet}");
+                    Console.WriteLine($"\t- BGM: {map.BGM}");
+                    Console.WriteLine($"\t- LightSet: {map.LightSet}");
+                    Console.WriteLine($"\t- ScreenSplitKind: {map.ScreenSplitKind}");
+                    Console.WriteLine($"\t- LanePairKind: {map.LanePairKind}");
+                    Console.WriteLine($"\t- CustomRespawn: {map.CustomRespawn}");
+                    Console.WriteLine($"\t- RespawnStepShift: {map.RespawnStepShift}");
+                    Console.WriteLine($"\t- RespawnStartPortal: {map.RespawnStartPortal}");
+                    Console.WriteLine($"\t- Unknown 6: {map.Unknown6}");
+                    Console.WriteLine($"\t- Unknown 7: {map.Unknown7}");
+                    Console.WriteLine($"\t- Unknown 8: {map.Unknown8}");
+                    Console.WriteLine($"\t- Unknown 9: {map.Unknown9}");
+                    Console.WriteLine($"\t- Unknown 10: {map.Unknown10}");
+                    Console.WriteLine($"\t- BlankSpaceGridNum: {map.BlankSpaceGridNum}");
+                    Console.WriteLine($"\t- Unknown 12: {map.Unknown12}");
+                    Console.WriteLine($"\t- SystemLayout: {map.SystemLayout}");
                 }
             }
         }

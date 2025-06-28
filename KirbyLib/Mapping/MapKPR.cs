@@ -13,13 +13,30 @@ namespace KirbyLib.Mapping
     public class MapKPR : Map2D
     {
         /// <summary>
-        /// Defines how far apart the front and back lanes are.
+        /// Defines pre-set object memory layouts for the map.
         /// </summary>
-        public enum LanePairKind : int
+        public enum BinSystemLayout : uint
         {
-            NormalFarLv1 = 0,
-            NormalFarLv2,
-            NormalFarLv3,
+            Normal = 0,
+            ForBoss,
+            ForShooting,
+            ForShootingBoss,
+            ForHolographyBoss,
+            ForBossSusie,
+            ForBossMetaknightborg,
+            ForBossMetaknightborgkai,
+            For3DShooting,
+            ForBossHartmann,
+            ForHartmannEndDemo,
+            ForMBossRush,
+            ForBossClonedarkmatter,
+            ForBossClonesectnia,
+            ForBossGalacticknight,
+            ForBoss07ScrewBattle,
+            ForBossSoulprogramcore,
+            ForBoss07MidDemo,
+            ForLv5Stage3Step08,
+            ForAbilityRoom
         }
 
         public const uint MAGIC_NUMBER = 0x0B;
@@ -95,20 +112,42 @@ namespace KirbyLib.Mapping
         /// The light set to load for the map.
         /// </summary>
         public string LightSet = "GrassNeo_1";
-        public ScreenSplitKind ScreenSplitKind;
-        public uint Unknown2;
-        public uint Unknown3;
-        public int Unknown4;
-        public uint Unknown5;
+        public ScreenSplitKind ScreenSplitKind = ScreenSplitKind.Normal;
+        public LanePairKind LanePairKind = LanePairKind.NormalFarLv1;
+        /// <summary>
+        /// If set, RespawnStartPortal and RespawnStepShift are used to determine where to place Kirby after dying.
+        /// </summary>
+        public bool CustomRespawn = false;
+        /// <summary>
+        /// How many rooms to move Kirby after dying.
+        /// </summary>
+        public int RespawnStepShift = 0;
+        /// <summary>
+        /// The StartPortal ID to place Kirby at after dying.
+        /// </summary>
+        public int RespawnStartPortal = 0;
+        /// <summary>
+        /// Controls something with the background.<br/>
+        /// Formatted into the string "Cam%d"
+        /// </summary>
         public uint Unknown6;
+        /// <summary>
+        /// Controls something with the background
+        /// </summary>
         public uint Unknown7;
-        public uint Unknown8;
-        public uint Unknown9;
+        /// <summary>
+        /// Controls something with the background.<br/>
+        /// Value is multiplied by 0.01 when read
+        /// </summary>
+        public int Unknown8;
+        /// <summary>
+        /// Controls something with the background
+        /// </summary>
+        public int Unknown9;
         public uint Unknown10;
-        public uint Unknown11;
+        public uint BlankSpaceGridNum = 0;
         public uint Unknown12;
-        public uint Unknown13;
-        public uint Unknown14;
+        public BinSystemLayout SystemLayout = BinSystemLayout.Normal;
 
         #endregion
 
@@ -188,19 +227,18 @@ namespace KirbyLib.Mapping
             BGM = reader.ReadStringOffset();
             LightSet = reader.ReadStringOffset();
             ScreenSplitKind = (ScreenSplitKind)reader.ReadInt32();
-            Unknown2 = reader.ReadUInt32();
-            Unknown3 = reader.ReadUInt32();
-            Unknown4 = reader.ReadInt32();
-            Unknown5 = reader.ReadUInt32();
+            LanePairKind = (LanePairKind)reader.ReadInt32();
+            CustomRespawn = reader.ReadUInt32() != 0;
+            RespawnStepShift = reader.ReadInt32();
+            RespawnStartPortal = reader.ReadInt32();
             Unknown6 = reader.ReadUInt32();
             Unknown7 = reader.ReadUInt32();
-            Unknown8 = reader.ReadUInt32();
-            Unknown9 = reader.ReadUInt32();
+            Unknown8 = reader.ReadInt32();
+            Unknown9 = reader.ReadInt32();
             Unknown10 = reader.ReadUInt32();
-            Unknown11 = reader.ReadUInt32();
+            BlankSpaceGridNum = reader.ReadUInt32();
             Unknown12 = reader.ReadUInt32();
-            Unknown13 = reader.ReadUInt32();
-            Unknown14 = reader.ReadUInt32();
+            SystemLayout = (BinSystemLayout)reader.ReadUInt32();
 
             reader.BaseStream.Position = gimmickSection;
             Gimmicks = ReadYamlSection(reader);
@@ -278,19 +316,19 @@ namespace KirbyLib.Mapping
             strings.Add(writer.BaseStream.Position, LightSet);
             writer.Write(-1);
             writer.Write((int)ScreenSplitKind);
-            writer.Write(Unknown2);
-            writer.Write(Unknown3);
-            writer.Write(Unknown4);
-            writer.Write(Unknown5);
+            writer.Write((int)LanePairKind);
+            writer.Write(CustomRespawn ? 1 : 0);
+            writer.Write(RespawnStepShift);
+            writer.Write(RespawnStartPortal);
             writer.Write(Unknown6);
             writer.Write(Unknown7);
             writer.Write(Unknown8);
             writer.Write(Unknown9);
             writer.Write(Unknown10);
-            writer.Write(Unknown11);
+            writer.Write(BlankSpaceGridNum);
             writer.Write(Unknown12);
-            writer.Write(Unknown13);
-            writer.Write(Unknown14);
+            writer.Write((uint)SystemLayout);
+            writer.WritePadding(0x10);
 
             writer.WritePositionAt(headerStart + 0x18);
             WriteYamlSection(writer, Gimmicks);
