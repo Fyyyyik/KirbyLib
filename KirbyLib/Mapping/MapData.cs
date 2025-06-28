@@ -374,6 +374,9 @@ namespace KirbyLib.Mapping
         Vertical
     }
 
+    /// <summary>
+    /// Defines how far apart the front and back lanes are.
+    /// </summary>
     public enum LanePairKind : int
     {
         NormalFarLv1 = 0,

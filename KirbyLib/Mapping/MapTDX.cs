@@ -126,16 +126,25 @@ namespace KirbyLib.Mapping
         /// The BGM ID to play in the map.<br/>
         /// References stream names in the BCSAR.
         /// </summary>
-        public string BGM;
-        public Vector3 Unknown1;
-        public ScreenSplitKind ScreenSplitKind;
-        public LanePairKind LanePairKind;
-        public bool CustomRespawn;
-        public int RespawnStepShift;
-        public int RespawnStartPortal;
+        public string BGM = "BGM_LP_HEITI1";
+        public Vector3 Unknown1 = new Vector3(0, 0, 0);
+        public ScreenSplitKind ScreenSplitKind = ScreenSplitKind.Normal;
+        public LanePairKind LanePairKind = LanePairKind.NormalFarLv1;
+        /// <summary>
+        /// If set, RespawnStartPortal and RespawnStepShift are used to determine where to place Kirby after dying.
+        /// </summary>
+        public bool CustomRespawn = false;
+        /// <summary>
+        /// How many rooms to move Kirby after dying.
+        /// </summary>
+        public int RespawnStepShift = 0;
+        /// <summary>
+        /// The StartPortal ID to place Kirby at after dying.
+        /// </summary>
+        public int RespawnStartPortal = 0;
         public int Unknown7;
         public int Unknown8;
-        public uint BlankSpaceGridNum;
+        public uint BlankSpaceGridNum = 0;
         public int Unknown10;
 
         #endregion
