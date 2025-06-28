@@ -448,16 +448,14 @@ namespace KirbyLib_Tests
                     Console.WriteLine($"\t- BGM:   {map.BGM}");
                     Console.WriteLine($"\t- Unk1:  {map.Unknown1}");
                     Console.WriteLine($"\t- ScreenSplitKind:  {map.ScreenSplitKind}");
-                    Console.WriteLine($"\t- Unk3:  {map.Unknown3}");
-                    Console.WriteLine($"\t- Unk4:  {map.Unknown4}");
-                    Console.WriteLine($"\t- Unk5:  {map.Unknown5}");
-                    Console.WriteLine($"\t- Unk6:  {map.Unknown6}");
+                    Console.WriteLine($"\t- LanePairKind:  {map.LanePairKind}");
+                    Console.WriteLine($"\t- CustomRespawn:  {map.CustomRespawn}");
+                    Console.WriteLine($"\t- RespawnStepShift:  {map.RespawnStepShift}");
+                    Console.WriteLine($"\t- RespawnStartPortal:  {map.RespawnStartPortal}");
                     Console.WriteLine($"\t- Unk7:  {map.Unknown7}");
                     Console.WriteLine($"\t- Unk8:  {map.Unknown8}");
-                    Console.WriteLine($"\t- Unk9:  {map.Unknown10}");
-                    Console.WriteLine($"\t- Unk10: {map.Unknown11}");
-                    Console.WriteLine($"\t- Unk11: {map.Unknown12}");
-                    Console.WriteLine($"\t- Unk12: {map.Unknown13}");
+                    Console.WriteLine($"\t- BlankSpaceGridNum:  {map.BlankSpaceGridNum}");
+                    Console.WriteLine($"\t- Unk10:  {map.Unknown10}");
 
                     /*
                     for (int j = 0; j < map.Enemies.Length; j++)

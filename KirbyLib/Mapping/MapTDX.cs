@@ -129,17 +129,14 @@ namespace KirbyLib.Mapping
         public string BGM;
         public Vector3 Unknown1;
         public ScreenSplitKind ScreenSplitKind;
-        public int Unknown3;
-        public int Unknown4;
-        public int Unknown5;
-        public int Unknown6;
+        public LanePairKind LanePairKind;
+        public bool CustomRespawn;
+        public int RespawnStepShift;
+        public int RespawnStartPortal;
         public int Unknown7;
         public int Unknown8;
-        public int Unknown9;
+        public uint BlankSpaceGridNum;
         public int Unknown10;
-        public int Unknown11;
-        public int Unknown12;
-        public int Unknown13;
 
         #endregion
 
@@ -262,17 +259,14 @@ namespace KirbyLib.Mapping
             BGM = reader.ReadStringOffset();
             Unknown1 = reader.ReadVector3();
             ScreenSplitKind = (ScreenSplitKind)reader.ReadInt32();
-            Unknown3 = reader.ReadInt32();
-            Unknown4 = reader.ReadInt32();
-            Unknown5 = reader.ReadInt32();
-            Unknown6 = reader.ReadInt32();
+            LanePairKind = (LanePairKind)reader.ReadInt32();
+            CustomRespawn = reader.ReadUInt32() != 0;
+            RespawnStepShift = reader.ReadInt32();
+            RespawnStartPortal = reader.ReadInt32();
             Unknown7 = reader.ReadInt32();
             Unknown8 = reader.ReadInt32();
-            Unknown9 = reader.ReadInt32();
+            BlankSpaceGridNum = reader.ReadUInt32();
             Unknown10 = reader.ReadInt32();
-            Unknown11 = reader.ReadInt32();
-            Unknown12 = reader.ReadInt32();
-            Unknown13 = reader.ReadInt32();
 
             reader.BaseStream.Position = gimmickSection + 4;
             reader.BaseStream.Position = reader.ReadUInt32();
@@ -436,17 +430,15 @@ namespace KirbyLib.Mapping
             writer.Write(-1);
             writer.Write(Unknown1);
             writer.Write((int)ScreenSplitKind);
-            writer.Write(Unknown3);
-            writer.Write(Unknown4);
-            writer.Write(Unknown5);
-            writer.Write(Unknown6);
+            writer.Write((int)LanePairKind);
+            writer.Write(CustomRespawn ? 1 : 0);
+            writer.Write(RespawnStepShift);
+            writer.Write(RespawnStartPortal);
             writer.Write(Unknown7);
             writer.Write(Unknown8);
-            writer.Write(Unknown9);
+            writer.Write(BlankSpaceGridNum);
             writer.Write(Unknown10);
-            writer.Write(Unknown11);
-            writer.Write(Unknown12);
-            writer.Write(Unknown13);
+            writer.WritePadding(0x10);
 
             List<string> gimmickNames = new List<string>();
             for (int i = 0; i < Gimmicks.Count; i++)

@@ -365,12 +365,23 @@ namespace KirbyLib.Mapping
         /// </summary>
         Normal = 0,
         /// <summary>
-        /// Horizontal split.
+        /// Horizontal split, lanes are stacked vertically.
         /// </summary>
         Horizontal,
         /// <summary>
-        /// Vertical split.
+        /// Vertical split, lanes are stacked horizontally.
         /// </summary>
         Vertical
+    }
+
+    public enum LanePairKind : int
+    {
+        NormalFarLv1 = 0,
+        NormalFarLv2,
+        NormalFarLv3,
+        /// <summary>
+        /// Only exists in Triple Deluxe, but is unused.
+        /// </summary>
+        NearLv1Normal
     }
 }
