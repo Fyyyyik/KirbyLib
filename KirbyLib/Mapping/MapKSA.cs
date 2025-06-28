@@ -14,6 +14,14 @@ namespace KirbyLib.Mapping
     /// </summary>
     public class MapKSA : Map2D
     {
+        public enum BinSystemLayout : uint
+        {
+            Normal,
+            ForBoss,
+            ForMBossRush,
+            ForAbilityRoom
+        }
+
         #region Structs
         /// <summary>
         /// Represents information about a moving collision group.<br/>
@@ -147,19 +155,17 @@ namespace KirbyLib.Mapping
         /// <summary>
         /// Defines the starting position of the background camera.
         /// </summary>
-        public Vector3 BGCameraPos;
+        public Vector3 BGCameraPos = new Vector3(0, 0, 0);
         /// <summary>
         /// A vector multiplied by the main game camera's position to set where the.
         /// </summary>
-        public Vector3 BGCameraMoveRate;
-        public int Unknown6;
-        public int Unknown7;
+        public Vector3 BGCameraMoveRate = new Vector3(1, 1, 1);
+        public uint BlankSpaceGridNum = 0;
+        public BinSystemLayout SystemLayout = BinSystemLayout.Normal;
         /// <summary>
-        /// Index of the BGM to use for the map.<br/>
-        /// The BGM list is stored in an external Yaml file.
+        /// If set, this map will use the alternate BGM specified in the Step BGM Yaml file.
         /// </summary>
-        public uint BGMIndex;
-        public int Unknown9;
+        public bool UseAltBGM;
 
         #endregion
 
@@ -299,10 +305,9 @@ namespace KirbyLib.Mapping
             RespawnStartPortal = reader.ReadInt32();
             BGCameraPos = reader.ReadVector3();
             BGCameraMoveRate = reader.ReadVector3();
-            Unknown6 = reader.ReadInt32();
-            Unknown7 = reader.ReadInt32();
-            BGMIndex = reader.ReadUInt32();
-            Unknown9 = reader.ReadInt32();
+            BlankSpaceGridNum = reader.ReadUInt32();
+            SystemLayout = (BinSystemLayout)reader.ReadUInt32();
+            UseAltBGM = reader.ReadUInt32();
 
             reader.BaseStream.Position = gimmickSection;
             Gimmicks = ReadYamlSection(reader);
@@ -452,10 +457,10 @@ namespace KirbyLib.Mapping
             writer.Write(RespawnStartPortal);
             writer.Write(BGCameraPos);
             writer.Write(BGCameraMoveRate);
-            writer.Write(Unknown6);
-            writer.Write(Unknown7);
-            writer.Write(BGMIndex);
-            writer.Write(Unknown9);
+            writer.Write(BlankSpaceGridNum);
+            writer.Write((uint)SystemLayout);
+            writer.Write(UseAltBGM);
+            writer.WritePadding(0x10);
 
             writer.WritePositionAt(headerStart + 0x1C);
             WriteYamlSection(writer, Gimmicks);

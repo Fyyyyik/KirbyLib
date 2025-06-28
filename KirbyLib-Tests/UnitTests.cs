@@ -604,10 +604,9 @@ namespace KirbyLib_Tests
                     Console.WriteLine($"  - RespawnStartPortal: {map.RespawnStartPortal}");
                     Console.WriteLine($"  - BGCameraPos: {map.BGCameraPos}");
                     Console.WriteLine($"  - BGCameraMoveRate: {map.BGCameraMoveRate}");
-                    Console.WriteLine($"  - Unknown6: {map.Unknown6}");
-                    Console.WriteLine($"  - Unknown7: {map.Unknown7}");
-                    Console.WriteLine($"  - BGMIndex: {map.BGMIndex}");
-                    Console.WriteLine($"  - Unknown9: {map.Unknown9}");
+                    Console.WriteLine($"  - BlankSpaceGridNum: {map.BlankSpaceGridNum}");
+                    Console.WriteLine($"  - SystemLayout: {map.SystemLayout}");
+                    Console.WriteLine($"  - BGMIndex: {map.UseAltBGM}");
                 }
             }
         }
