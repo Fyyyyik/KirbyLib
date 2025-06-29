@@ -456,6 +456,7 @@ namespace KirbyLib_Tests
                     Console.WriteLine($"\t- Unk8:  {map.Unknown8}");
                     Console.WriteLine($"\t- BlankSpaceGridNum:  {map.BlankSpaceGridNum}");
                     Console.WriteLine($"\t- Unk10:  {map.Unknown10}");
+                    Console.WriteLine($"\t- SystemLayout:  {map.SystemLayout}");
 
                     /*
                     for (int j = 0; j < map.Enemies.Length; j++)

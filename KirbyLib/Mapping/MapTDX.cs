@@ -146,6 +146,11 @@ namespace KirbyLib.Mapping
         public int Unknown8;
         public uint BlankSpaceGridNum = 0;
         public int Unknown10;
+        /// <summary>
+        /// BinSystemLayout enum is unknown for this format.<br/>
+        /// Maximum recognized value is 4.
+        /// </summary>
+        public uint SystemLayout;
 
         #endregion
 
@@ -276,6 +281,7 @@ namespace KirbyLib.Mapping
             Unknown8 = reader.ReadInt32();
             BlankSpaceGridNum = reader.ReadUInt32();
             Unknown10 = reader.ReadInt32();
+            SystemLayout = reader.ReadUInt32();
 
             reader.BaseStream.Position = gimmickSection + 4;
             reader.BaseStream.Position = reader.ReadUInt32();
@@ -447,6 +453,7 @@ namespace KirbyLib.Mapping
             writer.Write(Unknown8);
             writer.Write(BlankSpaceGridNum);
             writer.Write(Unknown10);
+            writer.Write(SystemLayout);
             writer.WritePadding(0x10);
 
             List<string> gimmickNames = new List<string>();
