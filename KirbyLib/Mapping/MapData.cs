@@ -90,7 +90,16 @@ namespace KirbyLib.Mapping
         /// The decoration tile ID this tile uses. References bone names in the 3D tileset model.<br/>If -1, no tile is used.
         /// </summary>
         public short Tile;
-        public byte Unknown;
+        /// <summary>
+        /// The width of this tile, in tiles. The maximum value is 15.<br/>
+        /// The decoration is culled when the camera leaves the range of this and the height.
+        /// </summary>
+        public byte Width;
+        /// <summary>
+        /// The height of this tile, in tiles. The maximum value is 15.<br/>
+        /// The decoration is culled when the camera leaves the range of this and the width.
+        /// </summary>
+        public byte Height;
         /// <summary>
         /// Binds the tile to a specific moving terrain group.<br/>If -1, the tile is static.
         /// </summary>
@@ -99,14 +108,24 @@ namespace KirbyLib.Mapping
         public DecorationTile()
         {
             Tile = -1;
-            Unknown = 0;
+            Width = 0;
+            Height = 0;
             Group = -1;
         }
 
-        public DecorationTile(short tile, byte unk, sbyte group)
+        public DecorationTile(short tile, byte extents, sbyte group)
         {
             Tile = tile;
-            Unknown = unk;
+            Width = (byte)((extents & 0xF0) >> 4);
+            Height = (byte)(extents & 0x0F);
+            Group = group;
+        }
+
+        public DecorationTile(short tile, byte width, byte height, sbyte group)
+        {
+            Tile = tile;
+            Width = width;
+            Height = height;
             Group = group;
         }
     }

@@ -672,8 +672,7 @@ namespace KirbyLib_Tests
             using (EndianBinaryReader reader = new EndianBinaryReader(stream))
                 map = new MapRtDL(reader);
 
-            map.XData.Version = new byte[2] { 5, 0 };
-            map.XData.Endianness = Endianness.Little;
+            map.IsDeluxe = !map.IsDeluxe;
 
             using (FileStream stream = new FileStream(OUT_PATH, FileMode.Create, FileAccess.Write))
             using (EndianBinaryWriter writer = new EndianBinaryWriter(stream))

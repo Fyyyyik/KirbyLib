@@ -148,7 +148,11 @@ namespace KirbyLib.Mapping
                 {
                     var tile = layer[x, y];
                     writer.Write(tile.Tile);
-                    writer.Write(tile.Unknown);
+
+                    byte w = Math.Min(tile.Width, (byte)0xF);
+                    byte h = Math.Min(tile.Height, (byte)0xF);
+                    writer.Write((byte)((w << 4) & h));
+
                     writer.Write(tile.Group);
                 }
             }
