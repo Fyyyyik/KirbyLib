@@ -97,17 +97,6 @@ namespace KirbyLib_Tests
                     }
                 }
             }
-            /*
-            Console.WriteLine($"Namespaces: {mint.Namespaces.Count}");
-            for (int i = 0; i < mint.Namespaces.Count; i++)
-            {
-                Console.WriteLine($"- {i}: {mint.Namespaces[i].Name}");
-                Console.WriteLine($"  - Scripts: {mint.Namespaces[i].Modules}");
-                Console.WriteLine($"  - TotalScripts: {mint.Namespaces[i].TotalModules}");
-                Console.WriteLine($"  - Children: {mint.Namespaces[i].ChildNamespaces}");
-                Console.WriteLine($"  - Unknown: {mint.Namespaces[i].Unknown}");
-            }
-            */
         }
 
         [TestMethod]
@@ -122,19 +111,6 @@ namespace KirbyLib_Tests
                 archive = new Archive(reader);
 
             Console.WriteLine("Successfully read archive");
-            Console.WriteLine($"Namespaces: {archive.Namespaces.Count}");
-            /*
-            for (int i = 0; i < archive.Namespaces.Count; i++)
-            {
-                Console.WriteLine($"- {i}: {archive.Namespaces[i].Name}");
-                Console.WriteLine($"  - Scripts: {archive.Namespaces[i].Modules}");
-                Console.WriteLine($"  - TotalScripts: {archive.Namespaces[i].TotalModules}");
-                Console.WriteLine($"  - Children: {archive.Namespaces[i].ChildNamespaces}");
-                Console.WriteLine($"  - Unknown: {archive.Namespaces[i].Unknown} ({archive.Namespaces[archive.Namespaces[i].Unknown].Name})");
-            }
-            */
-
-            var namespaces = archive.Namespaces;
 
             using (FileStream stream = new FileStream(OUT_PATH, FileMode.Create, FileAccess.Write))
             using (EndianBinaryWriter writer = new EndianBinaryWriter(stream))
@@ -146,36 +122,7 @@ namespace KirbyLib_Tests
             using (EndianBinaryReader reader = new EndianBinaryReader(stream))
                 archive.Read(reader);
 
-            bool NamespaceEqual(MintNamespace a, MintNamespace b)
-            {
-                return a.Name == b.Name && a.Modules == b.Modules && a.TotalModules == b.TotalModules && a.ChildNamespaces == b.ChildNamespaces && a.Unknown == b.Unknown;
-            }
-
             Console.WriteLine("Successfully re-read archive");
-            Console.WriteLine($"Namespaces: {archive.Namespaces.Count}");
-            for (int i = 0; i < archive.Namespaces.Count; i++)
-            {
-                if (!NamespaceEqual(namespaces[i], archive.Namespaces[i]))
-                {
-                    Console.WriteLine($" - Namespace {i} differs!");
-                    Console.WriteLine($"  - Name:          Original = {namespaces[i].Name}, New = {archive.Namespaces[i].Name}");
-                    Console.WriteLine($"  - Modules:       Original = {namespaces[i].Modules}, New = {archive.Namespaces[i].Modules}");
-                    Console.WriteLine($"  - Total Modules: Original = {namespaces[i].TotalModules}, New = {archive.Namespaces[i].TotalModules}");
-                    Console.WriteLine($"  - Children:      Original = {namespaces[i].ChildNamespaces}, New = {archive.Namespaces[i].ChildNamespaces}");
-                    Console.WriteLine($"  - Unknown:       Original = {namespaces[i].Unknown}, New = {archive.Namespaces[i].Unknown}");
-                }
-            }
-
-            /*
-            for (int i = 0; i < archive.Namespaces.Count; i++)
-            {
-                Console.WriteLine($"- {i}: {archive.Namespaces[i].Name}");
-                Console.WriteLine($"  - Scripts: {archive.Namespaces[i].Modules}");
-                Console.WriteLine($"  - TotalScripts: {archive.Namespaces[i].TotalModules}");
-                Console.WriteLine($"  - Children: {archive.Namespaces[i].ChildNamespaces}");
-                Console.WriteLine($"  - Unknown: {archive.Namespaces[i].Unknown} ({archive.Namespaces[archive.Namespaces[i].Unknown].Name})");
-            }
-            */
         }
 
         [TestMethod]
@@ -190,19 +137,6 @@ namespace KirbyLib_Tests
                 archive = new Archive(reader);
 
             Console.WriteLine("Successfully read archive");
-            Console.WriteLine($"Namespaces: {archive.Namespaces.Count}");
-            /*
-            for (int i = 0; i < archive.Namespaces.Count; i++)
-            {
-                Console.WriteLine($"- {i}: {archive.Namespaces[i].Name}");
-                Console.WriteLine($"  - Scripts: {archive.Namespaces[i].Modules}");
-                Console.WriteLine($"  - TotalScripts: {archive.Namespaces[i].TotalModules}");
-                Console.WriteLine($"  - Children: {archive.Namespaces[i].ChildNamespaces}");
-                Console.WriteLine($"  - Unknown: {archive.Namespaces[i].Unknown} ({archive.Namespaces[archive.Namespaces[i].Unknown].Name})");
-            }
-            */
-
-            var namespaces = archive.Namespaces;
 
             using (FileStream stream = new FileStream(OUT_PATH, FileMode.Create, FileAccess.Write))
             using (EndianBinaryWriter writer = new EndianBinaryWriter(stream))
@@ -214,36 +148,7 @@ namespace KirbyLib_Tests
             using (EndianBinaryReader reader = new EndianBinaryReader(stream))
                 archive.Read(reader);
 
-            bool NamespaceEqual(MintNamespace a, MintNamespace b)
-            {
-                return a.Name == b.Name && a.Modules == b.Modules && a.TotalModules == b.TotalModules && a.ChildNamespaces == b.ChildNamespaces && a.Unknown == b.Unknown;
-            }
-
             Console.WriteLine("Successfully re-read archive");
-            Console.WriteLine($"Namespaces: {archive.Namespaces.Count}");
-            for (int i = 0; i < archive.Namespaces.Count; i++)
-            {
-                if (!NamespaceEqual(namespaces[i], archive.Namespaces[i]))
-                {
-                    Console.WriteLine($" - Namespace {i} differs!");
-                    Console.WriteLine($"  - Name:          Original = {namespaces[i].Name}, New = {archive.Namespaces[i].Name}");
-                    Console.WriteLine($"  - Modules:       Original = {namespaces[i].Modules}, New = {archive.Namespaces[i].Modules}");
-                    Console.WriteLine($"  - Total Modules: Original = {namespaces[i].TotalModules}, New = {archive.Namespaces[i].TotalModules}");
-                    Console.WriteLine($"  - Children:      Original = {namespaces[i].ChildNamespaces}, New = {archive.Namespaces[i].ChildNamespaces}");
-                    Console.WriteLine($"  - Unknown:       Original = {namespaces[i].Unknown}, New = {archive.Namespaces[i].Unknown}");
-                }
-            }
-
-            /*
-            for (int i = 0; i < archive.Namespaces.Count; i++)
-            {
-                Console.WriteLine($"- {i}: {archive.Namespaces[i].Name}");
-                Console.WriteLine($"  - Scripts: {archive.Namespaces[i].Modules}");
-                Console.WriteLine($"  - TotalScripts: {archive.Namespaces[i].TotalModules}");
-                Console.WriteLine($"  - Children: {archive.Namespaces[i].ChildNamespaces}");
-                Console.WriteLine($"  - Unknown: {archive.Namespaces[i].Unknown} ({archive.Namespaces[archive.Namespaces[i].Unknown].Name})");
-            }
-            */
         }
 
         [TestMethod]
@@ -258,19 +163,6 @@ namespace KirbyLib_Tests
                 archive = new Archive(reader);
 
             Console.WriteLine("Successfully read archive");
-            Console.WriteLine($"Namespaces: {archive.Namespaces.Count}");
-            /*
-            for (int i = 0; i < archive.Namespaces.Count; i++)
-            {
-                Console.WriteLine($"- {i}: {archive.Namespaces[i].Name}");
-                Console.WriteLine($"  - Scripts: {archive.Namespaces[i].Modules}");
-                Console.WriteLine($"  - TotalScripts: {archive.Namespaces[i].TotalModules}");
-                Console.WriteLine($"  - Children: {archive.Namespaces[i].ChildNamespaces}");
-                Console.WriteLine($"  - Unknown: {archive.Namespaces[i].Unknown} ({archive.Namespaces[archive.Namespaces[i].Unknown].Name})");
-            }
-            */
-
-            var namespaces = archive.Namespaces;
 
             using (FileStream stream = new FileStream(OUT_PATH, FileMode.Create, FileAccess.Write))
             using (EndianBinaryWriter writer = new EndianBinaryWriter(stream))
@@ -282,36 +174,7 @@ namespace KirbyLib_Tests
             using (EndianBinaryReader reader = new EndianBinaryReader(stream))
                 archive.Read(reader);
 
-            bool NamespaceEqual(MintNamespace a, MintNamespace b)
-            {
-                return a.Name == b.Name && a.Modules == b.Modules && a.TotalModules == b.TotalModules && a.ChildNamespaces == b.ChildNamespaces && a.Unknown == b.Unknown;
-            }
-
             Console.WriteLine("Successfully re-read archive");
-            Console.WriteLine($"Namespaces: {archive.Namespaces.Count}");
-            for (int i = 0; i < archive.Namespaces.Count; i++)
-            {
-                if (!NamespaceEqual(namespaces[i], archive.Namespaces[i]))
-                {
-                    Console.WriteLine($" - Namespace {i} differs!");
-                    Console.WriteLine($"  - Name:          Original = {namespaces[i].Name}, New = {archive.Namespaces[i].Name}");
-                    Console.WriteLine($"  - Modules:       Original = {namespaces[i].Modules}, New = {archive.Namespaces[i].Modules}");
-                    Console.WriteLine($"  - Total Modules: Original = {namespaces[i].TotalModules}, New = {archive.Namespaces[i].TotalModules}");
-                    Console.WriteLine($"  - Children:      Original = {namespaces[i].ChildNamespaces}, New = {archive.Namespaces[i].ChildNamespaces}");
-                    Console.WriteLine($"  - Unknown:       Original = {namespaces[i].Unknown}, New = {archive.Namespaces[i].Unknown}");
-                }
-            }
-
-            /*
-            for (int i = 0; i < archive.Namespaces.Count; i++)
-            {
-                Console.WriteLine($"- {i}: {archive.Namespaces[i].Name}");
-                Console.WriteLine($"  - Scripts: {archive.Namespaces[i].Modules}");
-                Console.WriteLine($"  - TotalScripts: {archive.Namespaces[i].TotalModules}");
-                Console.WriteLine($"  - Children: {archive.Namespaces[i].ChildNamespaces}");
-                Console.WriteLine($"  - Unknown: {archive.Namespaces[i].Unknown} ({archive.Namespaces[archive.Namespaces[i].Unknown].Name})");
-            }
-            */
         }
 
         [TestMethod]

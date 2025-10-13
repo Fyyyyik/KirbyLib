@@ -13,7 +13,6 @@ namespace KirbyLib.Mint
 
         public byte[] Version = new byte[4];
 
-        public List<MintNamespace> Namespaces = new List<MintNamespace>();
         public List<Module> Modules = new List<Module>();
 
         public Archive(byte[] version)
@@ -36,39 +35,10 @@ namespace KirbyLib.Mint
             long header = reader.BaseStream.Position;
 
             Version = reader.ReadBytes(4);
-            // For some reason, all indicies related to namespaces are 1 more than they should be
-            int namespaceCount = reader.ReadInt32() - 1;
-            uint headerLength = reader.ReadUInt32(); // Always 0x24
+            uint namespaceCount = reader.ReadUInt32();
+            uint namespaceAddr = reader.ReadUInt32();
             uint moduleCount = reader.ReadUInt32();
             uint moduleAddr = reader.ReadUInt32();
-            uint endOfDataAddr = reader.ReadUInt32();
-            uint orphanModules = reader.ReadUInt32();
-            reader.ReadUInt32();
-            int rootNamespaces = reader.ReadInt32();
-
-            reader.BaseStream.Position = header + headerLength;
-            uint indexTable = reader.ReadUInt32();
-
-            long namespaceListAddr = reader.BaseStream.Position;
-            reader.BaseStream.Position = indexTable;
-            Namespaces = new List<MintNamespace>();
-            for (int i = 0; i < namespaceCount; i++)
-            {
-                reader.BaseStream.Position = indexTable + (i * 4);
-                int index = reader.ReadInt32() - 1;
-
-                reader.BaseStream.Position = namespaceListAddr + (index * 0x14);
-
-                MintNamespace n = new MintNamespace();
-                n.Name = reader.ReadStringOffset();
-                n.Modules = reader.ReadInt32();
-                n.TotalModules = reader.ReadInt32();
-                n.ChildNamespaces = reader.ReadInt32();
-                // HAL Labs you are so weird why do you do this?
-                n.Unknown = reader.ReadIntOffset(-4) - 1;
-
-                Namespaces.Add(n);
-            }
 
             Modules = new List<Module>();
             for (uint i = 0; i < moduleCount; i++)
@@ -85,79 +55,82 @@ namespace KirbyLib.Mint
 
                 Modules.Add(module);
             }
-
-            reader.BaseStream.Position = endOfDataAddr;
-            //Console.WriteLine("Unknown 1: " + reader.ReadUInt32());
-            //Console.WriteLine("Unknown 2: " + reader.ReadUInt32());
         }
 
         public void Write(EndianBinaryWriter writer)
         {
             StringHelperContainer strings = new StringHelperContainer();
 
-            /*
-            // Not doing this until I know everything about that stupid unknown value because everything other than that is very easy to calculate
-            
             // Auto-generate namespace list based on module names
-            List<string> namespaceList = new List<string>();
+            List<string> namespaces = new List<string>();
+            // Blank namespace to handle orphan modules
+            namespaces.Add("");
             for (int i = 0; i < Modules.Count; i++)
             {
                 string[] modNameSplit = Modules[i].Name.Split('.');
                 for (int s = 0; s < modNameSplit.Length - 1; s++)
                 {
                     string nSpace = string.Join(".", modNameSplit.Take(s + 1));
-                    if (!namespaceList.Contains(nSpace))
-                        namespaceList.Add(nSpace);
+                    if (!namespaces.Contains(nSpace))
+                        namespaces.Add(nSpace);
                 }
             }
-            namespaceList = namespaceList.OrderBy(x => x.ToLower()).OrderBy(x => x.Count(x => x == '.')).ToList();
-            */
+            namespaces.Sort(StringComparer.Ordinal);
 
             XData.WriteHeader(writer);
 
             writer.Write(Version);
 
             long header = writer.BaseStream.Position;
-            writer.Write(Namespaces.Count + 1);
-            writer.Write(0x24);
+            writer.Write(namespaces.Count);
+            writer.Write(-1);
             writer.Write(Modules.Count);
             writer.Write(-1);
-            writer.Write(-1);
-            writer.Write(Modules.Count(x => !x.Name.Contains('.')));
-            writer.Write(0);
-            writer.Write(Namespaces.Count(x => !x.Name.Contains('.')));
 
-            long indexTableStart = writer.BaseStream.Position + (Namespaces.Count * 0x14) + 4;
-            writer.Write((uint)indexTableStart);
             long namespaceListStart = writer.BaseStream.Position;
+            writer.WritePositionAt(header + 0x4);
 
-            var writeOrder = Namespaces.Select(x => x.Name).ToList();
-            writeOrder.Sort(StringComparer.Ordinal);
-
-            int moduleCount = Modules.Count(x => !x.Name.Contains('.'));
-            for (int i = 0; i < writeOrder.Count; i++)
+            // Pad out the namespace section to streamline writing children lists
+            for (int i = 0; i < namespaces.Count; i++)
             {
-                var nSpace = Namespaces.First(x => x.Name == writeOrder[i]);
-                strings.Add(writer.BaseStream.Position, nSpace.Name);
                 writer.Write(-1);
-                int modules = Modules.Count(x => x.Name != nSpace.Name && x.Name.StartsWith(nSpace.Name + ".") && !x.Name.Remove(0, nSpace.Name.Length + 1).Contains('.'));
+                writer.Write(-1);
+                writer.Write(-1);
+                writer.Write(-1);
+                writer.Write(-1);
+            }
+
+            int moduleCount = 0;
+            for (int i = 0; i < namespaces.Count; i++)
+            {
+                /*
+                 * Namespace format goes as follows:
+                 * 0x0  -- Name
+                 * 0x4  -- Module count
+                 * 0x8  -- Total module count
+                 * 0x10 -- Child namespace count
+                 * 0x14 -- Offset to child namespace index list
+                 */
+
+                writer.BaseStream.Position = namespaceListStart + (i * 0x14);
+
+                var nSpace = namespaces[i];
+                strings.Add(writer.BaseStream.Position, nSpace);
+                writer.Write(-1);
+                // This is an incredibly janky one-line solution but it works
+                int modules = Modules.Count(x => x.Name != nSpace && (x.Name.StartsWith(nSpace + ".") || nSpace.Length == 0) && !x.Name.Remove(0, nSpace.Length + 1).Contains('.'));
                 writer.Write(modules);
                 writer.Write(moduleCount);
                 moduleCount += modules;
-                writer.Write(Namespaces.Count(x => x.Name != nSpace.Name && x.Name.StartsWith(nSpace.Name + ".") && !x.Name.Remove(0, nSpace.Name.Length + 1).Contains('.')));
 
-                writer.Write((int)indexTableStart + 4);
-            }
+                // This is also an incredibly janky one-line solution but it works as well
+                var childNamespaces = namespaces.Where(x => x != nSpace && (x.StartsWith(nSpace + ".") || nSpace.Length == 0) && !x.Remove(0, nSpace.Length + 1).Contains('.'));
+                writer.Write(childNamespaces.Count());
 
-            for (int i = 0; i < Namespaces.Count; i++)
-            {
-                int index = writeOrder.IndexOf(Namespaces[i].Name);
-                writer.Write(index + 1);
-                for (int n = 0; n < writeOrder.Count; n++)
-                {
-                    if (Namespaces.First(x => x.Name == writeOrder[n]).Unknown == index)
-                        writer.WritePositionAt(namespaceListStart + (n * 0x14) + 0x10);
-                }
+                writer.BaseStream.Seek(0, SeekOrigin.End);
+                writer.WritePositionAt(namespaceListStart + (i * 0x14) + 0x10);
+                for (int c = 0; c < childNamespaces.Count(); c++)
+                    writer.Write(namespaces.IndexOf(childNamespaces.ElementAt(c)));
             }
 
             writer.WritePositionAt(header + 0xC);
@@ -177,6 +150,9 @@ namespace KirbyLib.Mint
                 {
                     using (EndianBinaryWriter moduleWriter = new EndianBinaryWriter(stream))
                     {
+                        Modules[i].XData.Version = XData.Version;
+                        Modules[i].XData.Endianness = XData.Endianness;
+
                         Modules[i].Format = GetModuleFormat();
                         Modules[i].Write(moduleWriter);
                     }
@@ -186,34 +162,10 @@ namespace KirbyLib.Mint
             }
 
             writer.WritePositionAt(header + 0x10);
-            writer.Write(0);
-            writer.Write(0);
             strings.WriteAll(writer);
 
             XData.WriteFilesize(writer);
             XData.WriteFooter(writer);
-        }
-
-        public bool NamespaceExists(string name)
-        {
-            for (int i = 0; i < Namespaces.Count; i++)
-            {
-                if (Namespaces[i].Name == name)
-                    return true;
-            }
-
-            return false;
-        }
-
-        public MintNamespace GetNamespace(string name)
-        {
-            for (int i = 0; i < Namespaces.Count; i++)
-            {
-                if (Namespaces[i].Name == name)
-                    return Namespaces[i];
-            }
-
-            return null;
         }
 
         /// <summary>
