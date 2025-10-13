@@ -107,7 +107,7 @@ namespace KirbyLib.Mint
                 uint funcAddr = reader.ReadUInt32();
                 uint enumAddr = reader.ReadUInt32();
 
-                uint implAddr = Format >= ModuleFormat.Mint ? reader.ReadUInt32() : 0;
+                uint implAddr = Format >= ModuleFormat.MintOld ? reader.ReadUInt32() : 0;
                 uint extAddr = Format >= ModuleFormat.BasilKatFL ? reader.ReadUInt32() : 0;
                 obj.Flags = reader.ReadUInt32();
 
@@ -276,7 +276,7 @@ namespace KirbyLib.Mint
                 writer.Write(0);
                 writer.Write(0);
                 writer.Write(0);
-                if (Format >= ModuleFormat.Mint)
+                if (Format >= ModuleFormat.MintOld)
                     writer.Write(0);
                 if (Format >= ModuleFormat.BasilKatFL)
                     writer.Write(0);
@@ -354,7 +354,7 @@ namespace KirbyLib.Mint
                         writer.Write(_enum.Flags);
                 }
 
-                if (Format >= ModuleFormat.Mint)
+                if (Format >= ModuleFormat.MintOld)
                 {
                     writer.WritePositionAt(objPos + 0x14);
                     writer.Write(obj.Implements.Count);

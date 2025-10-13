@@ -217,7 +217,9 @@ namespace KirbyLib.Mint
         {
             ModuleFormat fmt = ModuleFormat.Mint;
 
-            if (Version[0] < 2 && Version[1] < 1)
+            if (Version[0] == 1 && Version[1] == 0 && Version[2] == 5)
+                fmt = ModuleFormat.TDX;
+            else if (Version[0] < 2 && Version[1] < 1)
                 fmt = ModuleFormat.MintOld;
             else if (Version[0] >= 7 && Version[2] < 6)
                 fmt = ModuleFormat.BasilKatFL;
