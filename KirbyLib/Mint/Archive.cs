@@ -135,26 +135,38 @@ namespace KirbyLib.Mint
 
             writer.WritePositionAt(header + 0xC);
 
-            long moduleAddr = writer.BaseStream.Position;
-            for (int i = 0; i < Modules.Count; i++)
+            List<Module> writeModules = new List<Module>();
+            for (int i = 0; i < namespaces.Count; i++)
             {
-                strings.Add(writer.BaseStream.Position, Modules[i].Name);
+                var nSpace = namespaces[i];
+                writeModules.AddRange(
+                    Modules.Where(x => x.Name != nSpace
+                        && (x.Name.StartsWith(nSpace + ".") || nSpace.Length == 0)
+                        && !x.Name.Remove(0, nSpace.Length + 1).Contains('.'))
+                    .OrderBy(x => x.Name, StringComparer.Ordinal)
+                );
+            }
+
+            long moduleAddr = writer.BaseStream.Position;
+            for (int i = 0; i < writeModules.Count; i++)
+            {
+                strings.Add(writer.BaseStream.Position, writeModules[i].Name);
                 writer.Write(-1);
                 writer.Write(-1);
             }
 
-            for (int i = 0; i < Modules.Count; i++)
+            for (int i = 0; i < writeModules.Count; i++)
             {
                 writer.WritePositionAt(moduleAddr + (i * 8) + 4);
                 using (MemoryStream stream = new MemoryStream())
                 {
                     using (EndianBinaryWriter moduleWriter = new EndianBinaryWriter(stream))
                     {
-                        Modules[i].XData.Version = XData.Version;
-                        Modules[i].XData.Endianness = XData.Endianness;
+                        writeModules[i].XData.Version = XData.Version;
+                        writeModules[i].XData.Endianness = XData.Endianness;
 
-                        Modules[i].Format = GetModuleFormat();
-                        Modules[i].Write(moduleWriter);
+                        writeModules[i].Format = GetModuleFormat();
+                        writeModules[i].Write(moduleWriter);
                     }
 
                     writer.Write(stream.ToArray());
