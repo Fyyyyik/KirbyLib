@@ -39,9 +39,13 @@ namespace KirbyLib.Mint
         /// </summary>
         public List<byte[]> Extends = new List<byte[]>();
         /// <summary>
+        /// The type of the object.
+        /// </summary>
+        public ObjectType Type;
+        /// <summary>
         /// Bitflags that tell the Mint VM how to treat this object.
         /// </summary>
-        public uint Flags;
+        public byte Flags;
 
         /// <summary>
         /// Returns true if the given variable exists.
@@ -214,5 +218,18 @@ namespace KirbyLib.Mint
             foreach (var pair in dict)
                 Enums.Add(new MintEnum(pair));
         }
+    }
+
+    public enum ObjectType : byte
+    {
+        Invalid,
+        Class,
+        Enum,
+        Interface,
+        Pod,
+        Rawptr,
+        Struct,
+        Unknown_7,
+        Utility
     }
 }

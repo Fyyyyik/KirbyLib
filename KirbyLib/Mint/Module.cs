@@ -109,7 +109,8 @@ namespace KirbyLib.Mint
 
                 uint implAddr = Format >= ModuleFormat.MintOld ? reader.ReadUInt32() : 0;
                 uint extAddr = Format >= ModuleFormat.BasilKatFL ? reader.ReadUInt32() : 0;
-                obj.Flags = reader.ReadUInt32();
+                obj.Type = (ObjectType)reader.ReadByte();
+                obj.Flags = reader.ReadByte();
 
                 // In Basil, sections that don't exist (by having no entries) have offsets of 0
                 if (varAddr > 0)
@@ -280,7 +281,9 @@ namespace KirbyLib.Mint
                     writer.Write(0);
                 if (Format >= ModuleFormat.BasilKatFL)
                     writer.Write(0);
+                writer.Write((byte)obj.Type);
                 writer.Write(obj.Flags);
+                writer.Align();
 
                 long varListStart = writer.BaseStream.Position;
                 writer.WritePositionAt(objPos + 0x8);
