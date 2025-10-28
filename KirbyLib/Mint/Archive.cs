@@ -77,6 +77,18 @@ namespace KirbyLib.Mint
             }
             namespaces.Sort(StringComparer.Ordinal);
 
+            List<Module> sortedModules = new List<Module>();
+            for (int i = 0; i < namespaces.Count; i++)
+            {
+                var nSpace = namespaces[i];
+                sortedModules.AddRange(
+                    Modules.Where(x => x.Name != nSpace
+                        && (x.Name.StartsWith(nSpace + ".") || nSpace.Length == 0)
+                        && !x.Name.Remove(0, nSpace.Length + 1).Contains('.'))
+                    .OrderBy(x => x.Name, StringComparer.Ordinal)
+                );
+            }
+
             XData.WriteHeader(writer);
 
             writer.Write(Version);
@@ -100,31 +112,37 @@ namespace KirbyLib.Mint
                 writer.Write(-1);
             }
 
-            int moduleCount = 0;
+            int prevModuleIndex = 0;
             for (int i = 0; i < namespaces.Count; i++)
             {
                 /*
                  * Namespace format goes as follows:
                  * 0x0  -- Name
                  * 0x4  -- Module count
-                 * 0x8  -- Total module count
+                 * 0x8  -- First Module index
                  * 0x10 -- Child namespace count
                  * 0x14 -- Offset to child namespace index list
                  */
 
+                var nSpace = namespaces[i];
+                bool FindModules(Module x)
+                    => x.Name != nSpace && (x.Name.StartsWith(nSpace + ".") || nSpace.Length == 0) && !x.Name.Remove(0, nSpace.Length + 1).Contains('.');
+
+                bool ChildNamespaces(string x)
+                    => x != nSpace && (x.StartsWith(nSpace + ".") || nSpace.Length == 0) && !x.Remove(0, nSpace.Length + 1).Contains('.');
+
                 writer.BaseStream.Position = namespaceListStart + (i * 0x14);
 
-                var nSpace = namespaces[i];
                 strings.Add(writer.BaseStream.Position, nSpace);
                 writer.Write(-1);
-                // This is an incredibly janky one-line solution but it works
-                int modules = Modules.Count(x => x.Name != nSpace && (x.Name.StartsWith(nSpace + ".") || nSpace.Length == 0) && !x.Name.Remove(0, nSpace.Length + 1).Contains('.'));
-                writer.Write(modules);
+                int moduleCount = sortedModules.Count(FindModules);
                 writer.Write(moduleCount);
-                moduleCount += modules;
 
-                // This is also an incredibly janky one-line solution but it works as well
-                var childNamespaces = namespaces.Where(x => x != nSpace && (x.StartsWith(nSpace + ".") || nSpace.Length == 0) && !x.Remove(0, nSpace.Length + 1).Contains('.'));
+                int moduleIdx = moduleCount > 0 ? sortedModules.FindIndex(FindModules) : prevModuleIndex;
+                prevModuleIndex = moduleIdx;
+                writer.Write(moduleIdx);
+
+                var childNamespaces = namespaces.Where(ChildNamespaces);
                 writer.Write(childNamespaces.Count());
 
                 writer.BaseStream.Seek(0, SeekOrigin.End);
@@ -135,38 +153,26 @@ namespace KirbyLib.Mint
 
             writer.WritePositionAt(header + 0xC);
 
-            List<Module> writeModules = new List<Module>();
-            for (int i = 0; i < namespaces.Count; i++)
-            {
-                var nSpace = namespaces[i];
-                writeModules.AddRange(
-                    Modules.Where(x => x.Name != nSpace
-                        && (x.Name.StartsWith(nSpace + ".") || nSpace.Length == 0)
-                        && !x.Name.Remove(0, nSpace.Length + 1).Contains('.'))
-                    .OrderBy(x => x.Name, StringComparer.Ordinal)
-                );
-            }
-
             long moduleAddr = writer.BaseStream.Position;
-            for (int i = 0; i < writeModules.Count; i++)
+            for (int i = 0; i < sortedModules.Count; i++)
             {
-                strings.Add(writer.BaseStream.Position, writeModules[i].Name);
+                strings.Add(writer.BaseStream.Position, sortedModules[i].Name);
                 writer.Write(-1);
                 writer.Write(-1);
             }
 
-            for (int i = 0; i < writeModules.Count; i++)
+            for (int i = 0; i < sortedModules.Count; i++)
             {
                 writer.WritePositionAt(moduleAddr + (i * 8) + 4);
                 using (MemoryStream stream = new MemoryStream())
                 {
                     using (EndianBinaryWriter moduleWriter = new EndianBinaryWriter(stream))
                     {
-                        writeModules[i].XData.Version = XData.Version;
-                        writeModules[i].XData.Endianness = XData.Endianness;
+                        sortedModules[i].XData.Version = XData.Version;
+                        sortedModules[i].XData.Endianness = XData.Endianness;
 
-                        writeModules[i].Format = GetModuleFormat();
-                        writeModules[i].Write(moduleWriter);
+                        sortedModules[i].Format = GetModuleFormat();
+                        sortedModules[i].Write(moduleWriter);
                     }
 
                     writer.Write(stream.ToArray());
