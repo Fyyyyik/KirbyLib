@@ -79,6 +79,7 @@ namespace KirbyLib.Mint
                 reader.BaseStream.Position = objAddr;
 
                 MintObject obj = new MintObject();
+                obj.Type = ObjectType.Class;
                 obj.Name = reader.ReadStringOffset();
                 uint varAddr = reader.ReadUInt32();
                 uint funcAddr = reader.ReadUInt32();
