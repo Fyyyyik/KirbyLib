@@ -131,7 +131,7 @@ namespace KirbyLib.Mint
                         string type = reader.ReadStringOffset();
 
                         MintVariable variable = new MintVariable(type, name);
-                        variable.Flags = reader.ReadUInt32();
+                        variable.Flags = reader.ReadByte();
 
                         obj.Variables.Add(variable);
                     }
@@ -305,6 +305,7 @@ namespace KirbyLib.Mint
                     strings.Add(writer.BaseStream.Position, var.Type);
                     writer.Write(-1);
                     writer.Write(var.Flags);
+                    writer.Align();
                 }
 
                 long funcListStart = writer.BaseStream.Position;
