@@ -769,18 +769,6 @@ namespace KirbyLib_Tests
             using (FileStream stream = new FileStream(OUT_PATH, FileMode.Open, FileAccess.Read))
             using (EndianBinaryReader reader = new EndianBinaryReader(stream))
                 fdg = new FDG(reader);
-
-            for (int i = 0; i < fdg.Scenes.Count; i++)
-            {
-                if (!fdg.SceneOrder.Contains(fdg.Scenes[i].Name))
-                    Console.WriteLine($"{fdg.Scenes[i].Name} unreferenced in Scene Order");
-            }
-
-            for (int i = 0; i < fdg.SceneOrder.Count; i++)
-            {
-                Console.WriteLine(fdg.SceneOrder[i]);
-            }
-
         }
 
         [TestMethod]
