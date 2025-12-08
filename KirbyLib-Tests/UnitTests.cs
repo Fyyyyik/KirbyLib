@@ -611,6 +611,7 @@ namespace KirbyLib_Tests
                 }
             }
             */
+            /*
             if (map.DecorationObjects.Count > 0)
             {
                 for (int l = 0; l < map.DecorationObjects.Count; l++)
@@ -635,16 +636,16 @@ namespace KirbyLib_Tests
                     Console.WriteLine($"\t\t- Param 8: " + map.DecorationObjects[l].Param8);
                 }
             }
+            */
             /*
             if (map.Type != MapRtDL.MapType.Normal)
             {
                 Console.WriteLine($"{maps[i].Remove(0, PATH.Length)} is of type {map.Type}");
             }
             */
-            /*
+            
             if (map.CollisionMoveGroups.Count(x => x.IsValid) > 0)
             {
-                Console.WriteLine(name);
                 for (int j = 0; j < map.CollisionMoveGroups.Length; j++)
                 {
                     var group = map.CollisionMoveGroups[j];
@@ -659,56 +660,55 @@ namespace KirbyLib_Tests
                         if (group.Action.IsValid)
                         {
                             Console.WriteLine($"\t\t- Action:");
-                            Console.WriteLine($"\t\t\t- Event: {group.Action.Event}");
+                            Console.WriteLine($"\t\t\t- SignalNo: {group.Action.SignalNo}");
                             Console.WriteLine($"\t\t\t- Param 1: {group.Action.Param1}");
                             Console.WriteLine($"\t\t\t- Param 2: {group.Action.Param2}");
                             Console.WriteLine($"\t\t\t- Start Immediately: {group.Action.StartImmediately}");
 
-                            var events = group.Action.Events;
-                            if (events.Count > 0)
+                            var orders = group.Action.Orders;
+                            for (int e = 0; e < orders.Count; e++)
                             {
-                                for (int e = 0; e < events.Count; e++)
-                                {
-                                    Console.WriteLine($"\t\t\t- Event {e}:");
-                                    Console.WriteLine($"\t\t\t\t- Direction: {events[e].Direction}");
-                                    Console.WriteLine($"\t\t\t\t- Distance: {events[e].Distance}");
-                                    Console.WriteLine($"\t\t\t\t- Delay: {events[e].Delay}");
+                                var order = orders[e];
+                                Console.WriteLine($"\t\t\t- Order {e}:");
+                                Console.WriteLine($"\t\t\t\t- Direction: {order.Direction}");
+                                Console.WriteLine($"\t\t\t\t- Distance: {order.Distance}");
+                                Console.WriteLine($"\t\t\t\t- WaitFrame: {order.WaitFrame}");
 
-                                    if (map.XData.Version[0] == 5)
-                                        Console.WriteLine($"\t\t\t\t- DX Unknown 1: {events[e].DXUnknown1}");
+                                if (map.IsDeluxe)
+                                    Console.WriteLine($"\t\t\t\t- DX Unknown 1: {order.DXUnknown1}");
 
-                                    Console.WriteLine($"\t\t\t\t- Unknown1: {events[e].Unknown1}");
+                                Console.WriteLine($"\t\t\t\t- Scalar: {order.Scalar}");
 
-                                    if (map.XData.Version[0] == 5)
-                                        Console.WriteLine($"\t\t\t\t- DX Unknown 2: {events[e].DXUnknown2}");
+                                if (map.IsDeluxe)
+                                    Console.WriteLine($"\t\t\t\t- DX Unknown 2: {order.DXUnknown2}");
 
-                                    Console.WriteLine($"\t\t\t\t- Time: {events[e].Time}");
+                                Console.WriteLine($"\t\t\t\t- Frame: {order.Frame}");
 
-                                    if (map.XData.Version[0] == 5)
-                                        Console.WriteLine($"\t\t\t\t- DX Unknown 3: {events[e].DXUnknown3}");
+                                if (map.IsDeluxe)
+                                    Console.WriteLine($"\t\t\t\t- DX Unknown 3: {order.DXUnknown3}");
 
-                                    Console.WriteLine($"\t\t\t\t- Is End: {events[e].IsEnd}");
-                                    Console.WriteLine($"\t\t\t\t- Unknown2: {events[e].Unknown2}");
-                                    Console.WriteLine($"\t\t\t\t- Unknown3: {events[e].Unknown3}");
-                                    Console.WriteLine($"\t\t\t\t- Unknown4: {events[e].Unknown4}");
-                                    Console.WriteLine($"\t\t\t\t- Unknown5: {events[e].Unknown5}");
-                                    Console.WriteLine($"\t\t\t\t- Unknown6: {events[e].Unknown6}");
-                                    Console.WriteLine($"\t\t\t\t- Unknown7: {events[e].Unknown7}");
-                                    Console.WriteLine($"\t\t\t\t- Unknown8: {events[e].Unknown8}");
-                                    Console.WriteLine($"\t\t\t\t- Unknown9: {events[e].Unknown9}");
-                                    Console.WriteLine($"\t\t\t\t- Unknown10: {events[e].Unknown10}");
-                                    Console.WriteLine($"\t\t\t\t- Unknown11: {events[e].Unknown11}");
-                                    Console.WriteLine($"\t\t\t\t- Unknown12: {events[e].Unknown12}");
-                                    Console.WriteLine($"\t\t\t\t- Accel Type: {events[e].AccelType}");
-                                    Console.WriteLine($"\t\t\t\t- Accel Time: {events[e].AccelTime}");
-                                    Console.WriteLine($"\t\t\t\t- Unknown13: {events[e].Unknown13}");
-                                }
+                                Console.WriteLine($"\t\t\t\t- Is End: {order.IsEnd}");
+                                Console.WriteLine($"\t\t\t\t- GoTo: {order.GoTo}");
+                                Console.WriteLine($"\t\t\t\t- SEStart: {order.SEStart}");
+                                Console.WriteLine($"\t\t\t\t- SEMove: {order.SEMove}");
+                                Console.WriteLine($"\t\t\t\t- SEStop: {order.SEStop}");
+                                Console.WriteLine($"\t\t\t\t- QuakeKindStart: {order.QuakeKindStart}");
+                                Console.WriteLine($"\t\t\t\t- QuakeKindMove: {order.QuakeKindMove}");
+                                Console.WriteLine($"\t\t\t\t- QuakeKindStop: {order.QuakeKindStop}");
+                                Console.WriteLine($"\t\t\t\t- VibrationStart: {order.VibrationStart}");
+                                Console.WriteLine($"\t\t\t\t- VibrationMove: {order.VibrationMove}");
+                                Console.WriteLine($"\t\t\t\t- VibrationStop: {order.VibrationStop}");
+                                Console.WriteLine($"\t\t\t\t- Unknown 0x13: {order.Unknown_0x13}");
+                                Console.WriteLine($"\t\t\t\t- Pattern: {order.Pattern}");
+                                Console.WriteLine($"\t\t\t\t- MoveRate: {order.MoveRate}");
+                                Console.WriteLine($"\t\t\t\t- Dir5 X: {order.Direction5_X}");
+                                Console.WriteLine($"\t\t\t\t- Dir5 Y: {order.Direction5_Y}");
                             }
                         }
                     }
                 }
             }
-            */
+            
         }
 
         [TestMethod]

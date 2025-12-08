@@ -70,7 +70,7 @@ namespace KirbyLib.Mapping
             /// Used for tying terrain movement to switches.<br/>
             /// If set to -1, this action cannot be triggered by a signal.
             /// </summary>
-            public sbyte Event;
+            public sbyte SignalNo;
             public byte Param1;
             public byte Param2;
             /// <summary>
@@ -78,86 +78,152 @@ namespace KirbyLib.Mapping
             /// </summary>
             public bool StartImmediately;
 
-            public List<MoveGridEvent> Events;
+            public List<MoveGridOrder> Orders;
 
             public MoveGridAction()
             {
                 IsValid = false;
-                Event = -1;
+                SignalNo = -1;
                 Param1 = 0;
                 Param2 = 0;
                 StartImmediately = false;
-                Events = new List<MoveGridEvent>();
+                Orders = new List<MoveGridOrder>();
             }
         }
 
-        public struct MoveGridEvent
+        public struct MoveGridOrder
         {
+            /// <summary>
+            /// The direction the terrain moves.
+            /// </summary>
             public MoveGridDirection Direction;
+            /// <summary>
+            /// How far the terrain travels.
+            /// </summary>
             public byte Distance;
-            public ushort Delay;
+            /// <summary>
+            /// How long to wait, in frames, before starting.
+            /// </summary>
+            public ushort WaitFrame;
+
             public short DXUnknown1;
 
-            public short Unknown1;
+            /// <summary>
+            /// A fixed-point value determining movement speed if non-zero.<br/>
+            /// A value of 100 equates to 1.00.<br/>
+            /// If zero, the movement speed is calculated through Distance/Time.
+            /// </summary>
+            public short Scalar;
 
             public short DXUnknown2;
 
-            public ushort Time;
+            /// <summary>
+            /// The amount of time, in frames, that this order lasts for.
+            /// </summary>
+            public ushort Frame;
 
             public short DXUnknown3;
 
+            /// <summary>
+            /// If set, the terrain stops moving after this order.
+            /// </summary>
             public bool IsEnd;
-            public sbyte Unknown2;
+            /// <summary>
+            /// If greater than -1, will progress to the order ID specified when this one ends.
+            /// </summary>
+            public sbyte GoTo;
 
-            public byte Unknown3;
-            public byte Unknown4;
-            public byte Unknown5;
-            public byte Unknown6;
-            public byte Unknown7;
-            public byte Unknown8;
-            public byte Unknown9;
-            public byte Unknown10;
-            public byte Unknown11;
-            public byte Unknown12;
+            /// <summary>
+            /// The sound effect to play when starting.
+            /// </summary>
+            public byte SEStart;
+            /// <summary>
+            /// The sound effect to play while moving.
+            /// </summary>
+            public byte SEMove;
+            /// <summary>
+            /// The sound effect to play when stopping.
+            /// </summary>
+            public byte SEStop;
+            /// <summary>
+            /// How strong the camera shakes when starting.
+            /// </summary>
+            public byte QuakeKindStart;
+            /// <summary>
+            /// How strong the camera shakes while moving.
+            /// </summary>
+            public byte QuakeKindMove;
+            /// <summary>
+            /// How strong the camera shakes when stopping.
+            /// </summary>
+            public byte QuakeKindStop;
+            /// <summary>
+            /// How strong the terrain shakes when starting.
+            /// </summary>
+            public byte VibrationStart;
+            /// <summary>
+            /// How strong the terrain shakes while moving.
+            /// </summary>
+            public byte VibrationMove;
+            /// <summary>
+            /// How strong the terrain shakes when stopping.
+            /// </summary>
+            public byte VibrationStop;
+            public byte Unknown_0x13;
+            /// <summary>
+            /// The movement pattern to follow.
+            /// </summary>
+            public MovePattern Pattern;
+            /// <summary>
+            /// A fixed-point multiplier for movement time.<br/>A value of 100 equates to 1.00.
+            /// </summary>
+            public byte MoveRate;
+            public byte Direction5_X;
+            public byte Direction5_Y;
 
-            public byte AccelType;
-            public byte AccelTime;
-            public ushort Unknown13;
-
-            public MoveGridEvent()
+            public MoveGridOrder()
             {
                 Direction = MoveGridDirection.Up;
                 Distance = 0;
-                Delay = 0;
+                WaitFrame = 0;
 
                 DXUnknown1 = -1;
 
-                Unknown1 = 0;
+                Scalar = 0;
 
                 DXUnknown2 = -1;
 
-                Time = 0;
+                Frame = 0;
 
                 DXUnknown3 = -1;
 
                 IsEnd = false;
-                Unknown2 = 0;
+                GoTo = -1;
 
-                Unknown3 = 0;
-                Unknown4 = 0;
-                Unknown5 = 0;
-                Unknown6 = 0;
-                Unknown7 = 0;
-                Unknown8 = 0;
-                Unknown9 = 0;
-                Unknown10 = 0;
-                Unknown11 = 0;
-                Unknown12 = 0;
-
-                AccelType = 0;
-                AccelTime = 0;
-                Unknown13 = 0;
+                SEStart = 0;
+                SEMove = 0;
+                SEStop = 0;
+                QuakeKindStart = 0;
+                QuakeKindMove = 0;
+                QuakeKindStop = 0;
+                VibrationStart = 0;
+                VibrationMove = 0;
+                VibrationStop = 0;
+                Unknown_0x13 = 0;
+                Pattern = MovePattern.Linear;
+                MoveRate = 0;
+                Direction5_X = 0;
+                Direction5_Y = 0;
             }
+        }
+
+        public enum MovePattern : byte
+        {
+            Linear,
+            Accel,
+            EaseOut,
+            EaseIn,
+            EaseInOut
         }
 
         public enum MoveGridDirection : uint
@@ -166,7 +232,8 @@ namespace KirbyLib.Mapping
             Right,
             Down,
             Left,
-            None
+            None,
+            Direction_5
         }
 
         public struct Boss
@@ -671,55 +738,55 @@ namespace KirbyLib.Mapping
                 if ((validMovement & (1 << i)) != 0)
                     action.IsValid = true;
 
-                action.Event = reader.ReadSByte();
+                action.SignalNo = reader.ReadSByte();
                 action.Param1 = reader.ReadByte();
                 action.Param2 = reader.ReadByte();
 
-                byte eventCount = reader.ReadByte();
-                action.Events = new List<MoveGridEvent>();
+                byte orderCount = reader.ReadByte();
+                action.Orders = new List<MoveGridOrder>();
 
                 action.StartImmediately = reader.ReadUInt32() != 0;
                 
                 reader.BaseStream.Position = reader.ReadUInt32();
-                for (int e = 0; e < eventCount; e++)
+                for (int e = 0; e < orderCount; e++)
                 {
-                    MoveGridEvent gEvent = new MoveGridEvent();
-                    gEvent.Direction = (MoveGridDirection)reader.ReadByte();
-                    gEvent.Distance = reader.ReadByte();
-                    gEvent.Delay = reader.ReadUInt16();
+                    MoveGridOrder gOrder = new MoveGridOrder();
+                    gOrder.Direction = (MoveGridDirection)reader.ReadByte();
+                    gOrder.Distance = reader.ReadByte();
+                    gOrder.WaitFrame = reader.ReadUInt16();
 
                     if (IsDeluxe)
-                        gEvent.DXUnknown1 = reader.ReadInt16();
+                        gOrder.DXUnknown1 = reader.ReadInt16();
 
-                    gEvent.Unknown1 = reader.ReadInt16();
-
-                    if (IsDeluxe)
-                        gEvent.DXUnknown2 = reader.ReadInt16();
-
-                    gEvent.Time = reader.ReadUInt16();
+                    gOrder.Scalar = reader.ReadInt16();
 
                     if (IsDeluxe)
-                        gEvent.DXUnknown3 = reader.ReadInt16();
+                        gOrder.DXUnknown2 = reader.ReadInt16();
 
-                    gEvent.IsEnd = reader.ReadByte() != 0;
-                    gEvent.Unknown2 = reader.ReadSByte();
+                    gOrder.Frame = reader.ReadUInt16();
 
-                    gEvent.Unknown3 = reader.ReadByte();
-                    gEvent.Unknown4 = reader.ReadByte();
-                    gEvent.Unknown5 = reader.ReadByte();
-                    gEvent.Unknown6 = reader.ReadByte();
-                    gEvent.Unknown7 = reader.ReadByte();
-                    gEvent.Unknown8 = reader.ReadByte();
-                    gEvent.Unknown9 = reader.ReadByte();
-                    gEvent.Unknown10 = reader.ReadByte();
-                    gEvent.Unknown11 = reader.ReadByte();
-                    gEvent.Unknown12 = reader.ReadByte();
+                    if (IsDeluxe)
+                        gOrder.DXUnknown3 = reader.ReadInt16();
 
-                    gEvent.AccelType = reader.ReadByte();
-                    gEvent.AccelTime = reader.ReadByte();
-                    gEvent.Unknown13 = reader.ReadUInt16();
+                    gOrder.IsEnd = reader.ReadByte() != 0;
+                    gOrder.GoTo = reader.ReadSByte();
 
-                    action.Events.Add(gEvent);
+                    gOrder.SEStart = reader.ReadByte();
+                    gOrder.SEMove = reader.ReadByte();
+                    gOrder.SEStop = reader.ReadByte();
+                    gOrder.QuakeKindStart = reader.ReadByte();
+                    gOrder.QuakeKindMove = reader.ReadByte();
+                    gOrder.QuakeKindStop = reader.ReadByte();
+                    gOrder.VibrationStart = reader.ReadByte();
+                    gOrder.VibrationMove = reader.ReadByte();
+                    gOrder.VibrationStop = reader.ReadByte();
+                    gOrder.Unknown_0x13 = reader.ReadByte();
+                    gOrder.Pattern = (MovePattern)reader.ReadByte();
+                    gOrder.MoveRate = reader.ReadByte();
+                    gOrder.Direction5_X = reader.ReadByte();
+                    gOrder.Direction5_Y = reader.ReadByte();
+
+                    action.Orders.Add(gOrder);
                 }
 
                 CollisionMoveGroups[i].Action = action;
@@ -1022,52 +1089,50 @@ namespace KirbyLib.Mapping
                 writer.WritePositionAt(terrainActions + 4 + (i * 4));
 
                 var action = CollisionMoveGroups[i].Action;
-                writer.Write(action.Event);
+                writer.Write(action.SignalNo);
                 writer.Write(action.Param1);
                 writer.Write(action.Param2);
-                writer.Write((byte)action.Events.Count);
+                writer.Write((byte)action.Orders.Count);
                 writer.Write(action.StartImmediately ? 1 : 0);
 
                 writer.Write((uint)writer.BaseStream.Position + 4);
 
-                for (int e = 0; e < action.Events.Count; e++)
+                for (int e = 0; e < action.Orders.Count; e++)
                 {
-                    var aEvent = action.Events[e];
-                    writer.Write((byte)aEvent.Direction);
-                    writer.Write(aEvent.Distance);
-                    writer.Write(aEvent.Delay);
+                    var aOrder = action.Orders[e];
+                    writer.Write((byte)aOrder.Direction);
+                    writer.Write(aOrder.Distance);
+                    writer.Write(aOrder.WaitFrame);
 
                     if (IsDeluxe)
-                        writer.Write(aEvent.DXUnknown1);
+                        writer.Write(aOrder.DXUnknown1);
 
-                    writer.Write(aEvent.Unknown1);
-
-                    if (IsDeluxe)
-                        writer.Write(aEvent.DXUnknown2);
-
-                    writer.Write(aEvent.Time);
+                    writer.Write(aOrder.Scalar);
 
                     if (IsDeluxe)
-                        writer.Write(aEvent.DXUnknown3);
+                        writer.Write(aOrder.DXUnknown2);
 
-                    writer.Write(aEvent.IsEnd ? (byte)1 : (byte)0);
-                    writer.Write(aEvent.Unknown2);
+                    writer.Write(aOrder.Frame);
 
-                    writer.Write(aEvent.Unknown3);
-                    writer.Write(aEvent.Unknown4);
-                    writer.Write(aEvent.Unknown5);
-                    writer.Write(aEvent.Unknown6);
-                    writer.Write(aEvent.Unknown7);
-                    writer.Write(aEvent.Unknown8);
-                    writer.Write(aEvent.Unknown9);
-                    writer.Write(aEvent.Unknown10);
-                    writer.Write(aEvent.Unknown11);
-                    writer.Write(aEvent.Unknown12);
+                    if (IsDeluxe)
+                        writer.Write(aOrder.DXUnknown3);
 
-                    writer.Write(aEvent.AccelType);
-                    writer.Write(aEvent.AccelTime);
-
-                    writer.Write(aEvent.Unknown13);
+                    writer.Write(aOrder.IsEnd ? (byte)1 : (byte)0);
+                    writer.Write(aOrder.GoTo);
+                    writer.Write(aOrder.SEStart);
+                    writer.Write(aOrder.SEMove);
+                    writer.Write(aOrder.SEStop);
+                    writer.Write(aOrder.QuakeKindStart);
+                    writer.Write(aOrder.QuakeKindMove);
+                    writer.Write(aOrder.QuakeKindStop);
+                    writer.Write(aOrder.VibrationStart);
+                    writer.Write(aOrder.VibrationMove);
+                    writer.Write(aOrder.VibrationStop);
+                    writer.Write(aOrder.Unknown_0x13);
+                    writer.Write((byte)aOrder.Pattern);
+                    writer.Write(aOrder.MoveRate);
+                    writer.Write(aOrder.Direction5_X);
+                    writer.Write(aOrder.Direction5_Y);
                 }
             }
 
