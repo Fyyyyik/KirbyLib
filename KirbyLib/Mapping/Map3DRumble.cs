@@ -87,21 +87,6 @@ namespace KirbyLib.Mapping
         #region Structs
 
         /// <summary>
-        /// A solid quad collision.
-        /// </summary>
-        public struct CollisionQuad
-        {
-            /// <summary>
-            /// The type of collision.
-            /// </summary>
-            public uint Kind;
-            public uint Vertex0;
-            public uint Vertex1;
-            public uint Vertex2;
-            public uint Vertex3;
-        }
-
-        /// <summary>
         /// Represents a position in the 3D grid.
         /// </summary>
         public struct GridPos3D
@@ -112,45 +97,12 @@ namespace KirbyLib.Mapping
         }
 
         /// <summary>
-        /// A decorative object that can be placed in the level.
-        /// </summary>
-        public struct Gimmick
-        {
-            public uint Kind;
-            public uint Unknown0x4;
-            public uint Unknown0x8;
-            public float Angle;
-            public Vector3 Position;
-        }
-
-        /// <summary>
-        /// The starting position for Kirby.
-        /// </summary>
-        public struct StartPortal
-        {
-            public uint Unknown0x0;
-            public uint Unknown0x4;
-            public uint Unknown0x8;
-            public float Angle;
-            public Vector3 Position;
-        }
-
-        /// <summary>
         /// A destructible block.
         /// </summary>
         public struct Block
         {
             public uint Kind;
             public GridPos3D GridPosition;
-        }
-
-        /// <summary>
-        /// A Warp Star that appears after all the wave of enemies have been cleared. Unused in Blowout Blast.
-        /// </summary>
-        public struct WarpStar
-        {
-            public uint Unknown0x0;
-            public Vector3 Position;
         }
 
         /// <summary>
@@ -180,23 +132,15 @@ namespace KirbyLib.Mapping
 
         public const uint MAGIC_NUMBER = 0x2;
 
-        public const uint HEADER_END = 0x12345678;
-
         public const uint MAX_WAYPOINT_COUNT = 7; // included
 
         public XData XData { get; protected set; } = new XData();
 
-        public List<Vector3> VertexTable { get; set; } = new List<Vector3>();
+        public Map3DCollision MapCollision { get; set; } = new Map3DCollision();
 
-        public List<CollisionQuad> CollisionQuads { get; set; } = new List<CollisionQuad>();
-
-        public List<Gimmick> Gimmicks { get; set; } = new List<Gimmick>();
-
-        public List<StartPortal> StartPortals { get; set; } = new List<StartPortal>();
+        public Map3DCommon MapCommon { get; set; } = new Map3DCommon();
 
         public List<Block> Blocks { get; set; } = new List<Block>();
-
-        public List<WarpStar> WarpStars { get; set; } = new List<WarpStar>();
 
         public List<Item> Items { get; set; } = new List<Item>();
 
@@ -254,70 +198,25 @@ namespace KirbyLib.Mapping
             }
 
             uint headerEnd = reader.ReadUInt32();
-            if (headerEnd != HEADER_END)
-                throw new InvalidDataException($"Expected header to end with {HEADER_END}, got {headerEnd}");
+            if (headerEnd != Map3DCommon.HEADER_END)
+                throw new InvalidDataException($"Expected header to end with {Map3DCommon.HEADER_END}, got {headerEnd}");
 
             reader.BaseStream.Position = stageSettingsSection;
-            Scale = BitConverter.UInt32BitsToSingle(reader.ReadUInt32()) * BitConverter.UInt32BitsToSingle(reader.ReadUInt32());
-            XOffset = BitConverter.UInt32BitsToSingle(reader.ReadUInt32());
-            ZOffset = BitConverter.UInt32BitsToSingle((reader.ReadUInt32()));
+            Scale = reader.ReadSingle() * reader.ReadSingle();
+            XOffset = reader.ReadSingle();
+            ZOffset = reader.ReadSingle();
 
             reader.BaseStream.Position = vertexTableSection;
-            for (int i = 0; i < vertexTableCount; i++)
-            {
-                uint x = reader.ReadUInt32();
-                uint y = reader.ReadUInt32();
-                uint z = reader.ReadUInt32();
-                Vector3 vertex = new Vector3();
-                vertex.X = BitConverter.UInt32BitsToSingle(x);
-                vertex.Y = BitConverter.UInt32BitsToSingle(y);
-                vertex.Z = BitConverter.UInt32BitsToSingle(z);
-                VertexTable.Add(vertex);
-            }
+            MapCollision.ReadVertexTable(reader, vertexTableCount);
 
             reader.BaseStream.Position = collisionQuadsSection;
-            for (int i = 0; i < collisionQuadCount; i++)
-            {
-                CollisionQuad quad = new CollisionQuad();
-                quad.Kind = reader.ReadUInt32();
-                quad.Vertex0 = reader.ReadUInt32();
-                quad.Vertex1 = reader.ReadUInt32();
-                quad.Vertex2 = reader.ReadUInt32();
-                quad.Vertex3 = reader.ReadUInt32();
-                CollisionQuads.Add(quad);
-            }
+            MapCollision.ReadCollisionQuads(reader, collisionQuadCount);
 
             reader.BaseStream.Position = gimmickSection;
-            for (int i = 0; i < gimmickCount; i++)
-            {
-                Gimmick gimmick = new Gimmick();
-                gimmick.Kind = reader.ReadUInt32();
-                gimmick.Unknown0x4 = reader.ReadUInt32();
-                gimmick.Unknown0x8 = reader.ReadUInt32();
-                gimmick.Angle = BitConverter.UInt32BitsToSingle(reader.ReadUInt32());
-                Vector3 pos = new Vector3();
-                pos.X = BitConverter.UInt32BitsToSingle(reader.ReadUInt32());
-                pos.Y = BitConverter.UInt32BitsToSingle(reader.ReadUInt32());
-                pos.Z = BitConverter.UInt32BitsToSingle(reader.ReadUInt32());
-                gimmick.Position = pos;
-                Gimmicks.Add(gimmick);
-            }
+            MapCommon.ReadGimmicks(reader, gimmickCount);
 
             reader.BaseStream.Position = startPortalSection;
-            for (int i = 0; i < startPortalCount; i++)
-            {
-                StartPortal startPortal = new StartPortal();
-                startPortal.Unknown0x0 = reader.ReadUInt32();
-                startPortal.Unknown0x4 = reader.ReadUInt32();
-                startPortal.Unknown0x8 = reader.ReadUInt32();
-                startPortal.Angle = BitConverter.UInt32BitsToSingle(reader.ReadUInt32());
-                Vector3 pos = new Vector3();
-                pos.X = BitConverter.UInt32BitsToSingle(reader.ReadUInt32());
-                pos.Y = BitConverter.UInt32BitsToSingle(reader.ReadUInt32());
-                pos.Z = BitConverter.UInt32BitsToSingle(reader.ReadUInt32());
-                startPortal.Position = pos;
-                StartPortals.Add(startPortal);
-            }
+            MapCommon.ReadStartPortals(reader, startPortalCount);
 
             reader.BaseStream.Position = blockSection;
             for (int i = 0; i < blockCount; i++)
@@ -333,17 +232,7 @@ namespace KirbyLib.Mapping
             }
 
             reader.BaseStream.Position = warpStarSection;
-            for (int i = 0; i < warpStarCount; i++)
-            {
-                WarpStar warpStar = new WarpStar();
-                warpStar.Unknown0x0 = reader.ReadUInt32();
-                Vector3 pos = new Vector3();
-                pos.X = BitConverter.UInt32BitsToSingle(reader.ReadUInt32());
-                pos.Y = BitConverter.UInt32BitsToSingle(reader.ReadUInt32());
-                pos.Z = BitConverter.UInt32BitsToSingle(reader.ReadUInt32());
-                warpStar.Position = pos;
-                WarpStars.Add(warpStar);
-            }
+            MapCommon.ReadWarpStars(reader, warpStarCount);
 
             reader.BaseStream.Position = itemSection;
             for (int i = 0; i < itemCount; i++)
@@ -352,9 +241,9 @@ namespace KirbyLib.Mapping
                 item.Kind = (BinItemKind)reader.ReadUInt32();
                 item.Variation = reader.ReadUInt32();
                 Vector3 pos = new Vector3();
-                pos.X = BitConverter.UInt32BitsToSingle(reader.ReadUInt32());
-                pos.Y = BitConverter.UInt32BitsToSingle(reader.ReadUInt32());
-                pos.Z = BitConverter.UInt32BitsToSingle(reader.ReadUInt32());
+                pos.X = reader.ReadSingle();
+                pos.Y = reader.ReadSingle();
+                pos.Z = reader.ReadSingle();
                 item.Position = pos;
                 Items.Add(item);
             }
@@ -368,15 +257,15 @@ namespace KirbyLib.Mapping
                     obj.Kind = (BinObjKind)reader.ReadUInt32();
                     obj.Type = (BinObjType)reader.ReadUInt32();
                     obj.Param = reader.ReadUInt32();
-                    obj.Angle = BitConverter.UInt32BitsToSingle(reader.ReadUInt32());
+                    obj.Angle = reader.ReadSingle();
                     obj.Unknown0x10 = reader.ReadUInt32();
                     uint waypointCount = reader.ReadUInt32();
                     for (int k = 0; k < waypointCount; k++)
                     {
                         Vector3 pos = new Vector3();
-                        pos.X = BitConverter.UInt32BitsToSingle(reader.ReadUInt32());
-                        pos.Y = BitConverter.UInt32BitsToSingle(reader.ReadUInt32());
-                        pos.Z = BitConverter.UInt32BitsToSingle(reader.ReadUInt32());
+                        pos.X = reader.ReadSingle();
+                        pos.Y = reader.ReadSingle();
+                        pos.Z = reader.ReadSingle();
                         obj.Waypoints.Add(pos);
                     }
                     for (int k = 0; k < MAX_WAYPOINT_COUNT - waypointCount; k++)
@@ -396,17 +285,17 @@ namespace KirbyLib.Mapping
 
             writer.Write(MAGIC_NUMBER);
             writer.Write(-1);
-            writer.Write(VertexTable.Count);
+            writer.Write(MapCollision.VertexTable.Count);
             writer.Write(-1);
-            writer.Write(CollisionQuads.Count);
+            writer.Write(MapCollision.CollisionQuads.Count);
             writer.Write(-1);
-            writer.Write(Gimmicks.Count);
+            writer.Write(MapCommon.Gimmicks.Count);
             writer.Write(-1);
-            writer.Write(StartPortals.Count);
+            writer.Write(MapCommon.StartPortals.Count);
             writer.Write(-1);
             writer.Write(Blocks.Count);
             writer.Write(-1);
-            writer.Write(WarpStars.Count);
+            writer.Write(MapCommon.WarpStars.Count);
             writer.Write(-1);
             writer.Write(Items.Count);
             writer.Write(-1);
@@ -420,7 +309,7 @@ namespace KirbyLib.Mapping
                 writer.Write(-1);
             }
 
-            writer.Write(HEADER_END);
+            writer.Write(Map3DCommon.HEADER_END);
 
             writer.WritePositionAt(0x14);
             writer.Write(1.0f);
@@ -428,47 +317,13 @@ namespace KirbyLib.Mapping
             writer.Write(XOffset);
             writer.Write(ZOffset);
 
-            writer.WritePositionAt(0x1C);
-            foreach (Vector3 vertex in VertexTable)
-            {
-                writer.Write(vertex.X);
-                writer.Write(vertex.Y);
-                writer.Write(vertex.Z);
-            }
+            MapCollision.WriteVertexTable(writer);
 
-            writer.WritePositionAt(0x24);
-            foreach (CollisionQuad quad in CollisionQuads)
-            {
-                writer.Write(quad.Kind);
-                writer.Write(quad.Vertex0);
-                writer.Write(quad.Vertex1);
-                writer.Write(quad.Vertex2);
-                writer.Write(quad.Vertex3);
-            }
+            MapCollision.WriteCollisionQuads(writer);
 
-            writer.WritePositionAt(0x2C);
-            foreach (Gimmick gimmick in Gimmicks)
-            {
-                writer.Write(gimmick.Kind);
-                writer.Write(gimmick.Unknown0x4);
-                writer.Write(gimmick.Unknown0x8);
-                writer.Write(gimmick.Angle);
-                writer.Write(gimmick.Position.X);
-                writer.Write(gimmick.Position.Y);
-                writer.Write(gimmick.Position.Z);
-            }
+            MapCommon.WriteGimmicks(writer);
 
-            writer.WritePositionAt(0x34);
-            foreach (StartPortal portal in StartPortals)
-            {
-                writer.Write(portal.Unknown0x0);
-                writer.Write(portal.Unknown0x4);
-                writer.Write(portal.Unknown0x8);
-                writer.Write(portal.Angle);
-                writer.Write(portal.Position.X);
-                writer.Write(portal.Position.Y);
-                writer.Write(portal.Position.Z);
-            }
+            MapCommon.WriteStartPortals(writer);
 
             for (int i = 0; i < Objects.Count; i++)
             {
@@ -506,14 +361,7 @@ namespace KirbyLib.Mapping
                 writer.Write(block.GridPosition.Z);
             }
 
-            writer.WritePositionAt(0x44);
-            foreach (WarpStar warpStar in WarpStars)
-            {
-                writer.Write(warpStar.Unknown0x0);
-                writer.Write(warpStar.Position.X);
-                writer.Write(warpStar.Position.Y);
-                writer.Write(warpStar.Position.Z);
-            }
+            MapCommon.WriteWarpStars(writer, false);
 
             writer.WritePositionAt(0x4C);
             foreach (Item item in Items)
