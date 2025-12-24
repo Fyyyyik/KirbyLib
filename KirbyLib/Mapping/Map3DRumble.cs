@@ -86,6 +86,36 @@ namespace KirbyLib.Mapping
 
         #region Structs
 
+        public struct Gimmick
+        {
+            public uint Kind;
+            public uint Unknown0x4;
+            public uint Unknown0x8;
+            public float Angle;
+            public Vector3 Position;
+        }
+
+        /// <summary>
+        /// The starting position for Kirby.
+        /// </summary>
+        public struct StartPortal
+        {
+            public uint Unknown0x0;
+            public uint Unknown0x4;
+            public uint Unknown0x8;
+            public float Angle;
+            public Vector3 Position;
+        }
+
+        /// <summary>
+        /// A Warp Star that appears after all the wave of enemies have been cleared. Unused in Blowout Blast.
+        /// </summary>
+        public struct WarpStar
+        {
+            public uint Unknown0x0;
+            public Vector3 Position;
+        }
+
         /// <summary>
         /// Represents a position in the 3D grid.
         /// </summary>
@@ -118,7 +148,7 @@ namespace KirbyLib.Mapping
         /// <summary>
         /// An in-game object such as an enemy.
         /// </summary>
-        public class Obj
+        public class Object
         {
             public BinObjKind Kind;
             public BinObjType Type;
@@ -130,27 +160,33 @@ namespace KirbyLib.Mapping
 
         #endregion
 
+        public const uint HEADER_END = 0x12345678;
+
         public const uint MAGIC_NUMBER = 0x2;
 
         public const uint MAX_WAYPOINT_COUNT = 7; // included
-
-        public XData XData { get; protected set; } = new XData();
-
-        public Map3DCollision MapCollision { get; set; } = new Map3DCollision();
-
-        public Map3DCommon MapCommon { get; set; } = new Map3DCommon();
-
-        public List<Block> Blocks { get; set; } = new List<Block>();
-
-        public List<Item> Items { get; set; } = new List<Item>();
-
-        public List<List<Obj>> Objects { get; set; } = new List<List<Obj>>();
 
         public float Scale = 1.95f;
 
         public float XOffset = 9.75f;
 
         public float ZOffset = 7.8f;
+
+        public List<Gimmick> Gimmicks { get; set; } = new List<Gimmick>();
+
+        public List<StartPortal> StartPortals { get; set; } = new List<StartPortal>();
+
+        public List<WarpStar> WarpStars { get; set; } = new List<WarpStar>();
+
+        public XData XData { get; protected set; } = new XData();
+
+        public Map3DCollision MapCollision { get; set; } = new Map3DCollision();
+
+        public List<Block> Blocks { get; set; } = new List<Block>();
+
+        public List<Item> Items { get; set; } = new List<Item>();
+
+        public List<List<Object>> Objects { get; set; } = new List<List<Object>>();
         
         public Map3DRumble()
         {
@@ -191,15 +227,15 @@ namespace KirbyLib.Mapping
             List<(uint, uint)> objWaves = new List<(uint, uint)>();
             for (int i = 0; i < waveCount; i++)
             {
-                Objects.Add(new List<Obj>());
+                Objects.Add(new List<Object>());
                 uint objCount = reader.ReadUInt32();
                 uint objSection = reader.ReadUInt32();
                 objWaves.Add((objCount, objSection));
             }
 
             uint headerEnd = reader.ReadUInt32();
-            if (headerEnd != Map3DCommon.HEADER_END)
-                throw new InvalidDataException($"Expected header to end with {Map3DCommon.HEADER_END}, got {headerEnd}");
+            if (headerEnd != HEADER_END)
+                throw new InvalidDataException($"Expected header to end with {HEADER_END}, got {headerEnd}");
 
             reader.BaseStream.Position = stageSettingsSection;
             Scale = reader.ReadSingle() * reader.ReadSingle();
@@ -213,10 +249,36 @@ namespace KirbyLib.Mapping
             MapCollision.ReadCollisionQuads(reader, collisionQuadCount);
 
             reader.BaseStream.Position = gimmickSection;
-            MapCommon.ReadGimmicks(reader, gimmickCount);
+            for (int i = 0; i < gimmickCount; i++)
+            {
+                Gimmick gimmick = new Gimmick();
+                gimmick.Kind = reader.ReadUInt32();
+                gimmick.Unknown0x4 = reader.ReadUInt32();
+                gimmick.Unknown0x8 = reader.ReadUInt32();
+                gimmick.Angle = reader.ReadSingle();
+                Vector3 pos = new Vector3();
+                pos.X = reader.ReadSingle();
+                pos.Y = reader.ReadSingle();
+                pos.Z = reader.ReadSingle();
+                gimmick.Position = pos;
+                Gimmicks.Add(gimmick);
+            }
 
             reader.BaseStream.Position = startPortalSection;
-            MapCommon.ReadStartPortals(reader, startPortalCount);
+            for (int i = 0; i < startPortalCount; i++)
+            {
+                StartPortal startPortal = new StartPortal();
+                startPortal.Unknown0x0 = reader.ReadUInt32();
+                startPortal.Unknown0x4 = reader.ReadUInt32();
+                startPortal.Unknown0x8 = reader.ReadUInt32();
+                startPortal.Angle = reader.ReadSingle();
+                Vector3 pos = new Vector3();
+                pos.X = reader.ReadSingle();
+                pos.Y = reader.ReadSingle();
+                pos.Z = reader.ReadSingle();
+                startPortal.Position = pos;
+                StartPortals.Add(startPortal);
+            }
 
             reader.BaseStream.Position = blockSection;
             for (int i = 0; i < blockCount; i++)
@@ -232,7 +294,17 @@ namespace KirbyLib.Mapping
             }
 
             reader.BaseStream.Position = warpStarSection;
-            MapCommon.ReadWarpStars(reader, warpStarCount);
+            for (int i = 0; i < warpStarCount; i++)
+            {
+                WarpStar warpStar = new WarpStar();
+                warpStar.Unknown0x0 = reader.ReadUInt32();
+                Vector3 pos = new Vector3();
+                pos.X = reader.ReadSingle();
+                pos.Y = reader.ReadSingle();
+                pos.Z = reader.ReadSingle();
+                warpStar.Position = pos;
+                WarpStars.Add(warpStar);
+            }
 
             reader.BaseStream.Position = itemSection;
             for (int i = 0; i < itemCount; i++)
@@ -253,7 +325,7 @@ namespace KirbyLib.Mapping
                 reader.BaseStream.Position = objWaves[i].Item2;
                 for (int j = 0; j < objWaves[i].Item1; j++)
                 {
-                    Obj obj = new Obj();
+                    Object obj = new Object();
                     obj.Kind = (BinObjKind)reader.ReadUInt32();
                     obj.Type = (BinObjType)reader.ReadUInt32();
                     obj.Param = reader.ReadUInt32();
@@ -289,13 +361,13 @@ namespace KirbyLib.Mapping
             writer.Write(-1);
             writer.Write(MapCollision.CollisionQuads.Count);
             writer.Write(-1);
-            writer.Write(MapCommon.Gimmicks.Count);
+            writer.Write(Gimmicks.Count);
             writer.Write(-1);
-            writer.Write(MapCommon.StartPortals.Count);
+            writer.Write(StartPortals.Count);
             writer.Write(-1);
             writer.Write(Blocks.Count);
             writer.Write(-1);
-            writer.Write(MapCommon.WarpStars.Count);
+            writer.Write(WarpStars.Count);
             writer.Write(-1);
             writer.Write(Items.Count);
             writer.Write(-1);
@@ -309,7 +381,7 @@ namespace KirbyLib.Mapping
                 writer.Write(-1);
             }
 
-            writer.Write(Map3DCommon.HEADER_END);
+            writer.Write(HEADER_END);
 
             writer.WritePositionAt(0x14);
             writer.Write(1.0f);
@@ -321,14 +393,34 @@ namespace KirbyLib.Mapping
 
             MapCollision.WriteCollisionQuads(writer);
 
-            MapCommon.WriteGimmicks(writer);
+            writer.WritePositionAt(0x2C);
+            foreach (Gimmick gimmick in Gimmicks)
+            {
+                writer.Write(gimmick.Kind);
+                writer.Write(gimmick.Unknown0x4);
+                writer.Write(gimmick.Unknown0x8);
+                writer.Write(gimmick.Angle);
+                writer.Write(gimmick.Position.X);
+                writer.Write(gimmick.Position.Y);
+                writer.Write(gimmick.Position.Z);
+            }
 
-            MapCommon.WriteStartPortals(writer);
+            writer.WritePositionAt(0x34);
+            foreach (StartPortal portal in StartPortals)
+            {
+                writer.Write(portal.Unknown0x0);
+                writer.Write(portal.Unknown0x4);
+                writer.Write(portal.Unknown0x8);
+                writer.Write(portal.Angle);
+                writer.Write(portal.Position.X);
+                writer.Write(portal.Position.Y);
+                writer.Write(portal.Position.Z);
+            }
 
             for (int i = 0; i < Objects.Count; i++)
             {
                 writer.WritePositionAt(positions[i]);
-                foreach (Obj obj in Objects[i])
+                foreach (Object obj in Objects[i])
                 {
                     writer.Write((uint)obj.Kind);
                     writer.Write((uint)obj.Type);
@@ -361,7 +453,15 @@ namespace KirbyLib.Mapping
                 writer.Write(block.GridPosition.Z);
             }
 
-            MapCommon.WriteWarpStars(writer, false);
+            writer.WritePositionAt(0x44);
+
+            foreach (WarpStar warpStar in WarpStars)
+            {
+                writer.Write(warpStar.Unknown0x0);
+                writer.Write(warpStar.Position.X);
+                writer.Write(warpStar.Position.Y);
+                writer.Write(warpStar.Position.Z);
+            }
 
             writer.WritePositionAt(0x4C);
             foreach (Item item in Items)

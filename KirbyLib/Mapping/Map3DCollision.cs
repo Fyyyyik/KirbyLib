@@ -14,7 +14,7 @@ namespace KirbyLib.Mapping
     public class Map3DCollision
     {
         /// <summary>
-        /// A solid quad collision.
+        /// A solid quad collision. Each vertex is an index in the vertex table.
         /// </summary>
         public struct CollisionQuad
         {

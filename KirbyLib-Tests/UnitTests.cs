@@ -856,7 +856,21 @@ namespace KirbyLib_Tests
             using (EndianBinaryReader reader = new EndianBinaryReader(stream))
                 map = new Map3DRumble(reader);
 
-            map.Objects[0][1].Type = Map3DRumble.BinObjType.HappyWait;
+            using (FileStream stream = new FileStream(OUT_PATH, FileMode.Create, FileAccess.Write))
+            using (EndianBinaryWriter writer = new EndianBinaryWriter(stream))
+                map.Write(writer);
+        }
+
+        [TestMethod]
+        public void MapKBBTest()
+        {
+            const string PATH = @"";
+            const string OUT_PATH = @"";
+
+            MapKBB map;
+            using (FileStream stream = new FileStream(PATH, FileMode.Open, FileAccess.Read))
+            using (EndianBinaryReader reader = new EndianBinaryReader(stream))
+                map = new MapKBB(reader);
 
             using (FileStream stream = new FileStream(OUT_PATH, FileMode.Create, FileAccess.Write))
             using (EndianBinaryWriter writer = new EndianBinaryWriter(stream))
